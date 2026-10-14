@@ -2,9 +2,28 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { weddingConfig, WeddingEvent } from "@/data/wedding-data";
+import { weddingConfig } from "@/data/wedding-data";
 import { FloralDivider } from "../traditional/OrnamentalBorders";
-import { Calendar, Clock, ExternalLink, MapPin, Sparkles } from "lucide-react";
+import { Calendar, Clock, ExternalLink, MapPin } from "lucide-react";
+
+const FootprintPair: React.FC<{ className?: string; style?: React.CSSProperties }> = ({ className = "", style }) => (
+  <svg aria-hidden="true" focusable="false" viewBox="0 0 36 48" className={className} style={style}>
+    <g fill="currentColor" fillOpacity="0.84">
+      <g transform="translate(3 2) rotate(-13 8 8)">
+        <g transform="translate(0 28) scale(1 -1)">
+          <path d="M8 9C3 9 2 15 4 21c1.2 3.5 3.1 6 5 5.7 3.1-.4 4.7-5.2 4.4-9.8C13.1 12.7 11.2 9 8 9Z" />
+          <circle cx="4" cy="5" r="2.1" /><circle cx="8" cy="3.6" r="2.2" /><circle cx="12" cy="5" r="1.9" />
+        </g>
+      </g>
+      <g transform="translate(17 22) rotate(12 8 8)">
+        <g transform="translate(0 28) scale(1 -1)">
+          <path d="M8 9C3 9 2 15 4 21c1.2 3.5 3.1 6 5 5.7 3.1-.4 4.7-5.2 4.4-9.8C13.1 12.7 11.2 9 8 9Z" />
+          <circle cx="4" cy="5" r="2.1" /><circle cx="8" cy="3.6" r="2.2" /><circle cx="12" cy="5" r="1.9" />
+        </g>
+      </g>
+    </g>
+  </svg>
+);
 
 const EventIllustration: React.FC<{ icon: string }> = ({ icon }) => (
   <svg aria-hidden="true" viewBox="0 0 120 120" className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24">
@@ -45,38 +64,7 @@ const EventIllustration: React.FC<{ icon: string }> = ({ icon }) => (
 
 export const EventsTimeline: React.FC = () => {
   const { events } = weddingConfig;
-  const stepsPerGap = 7;
-
-  const generateIcsCalendar = (event: WeddingEvent) => {
-    const title = `${event.title} — Sravya & Karthik Wedding`;
-    const description = `${event.description}\\nDress Code: ${event.dressCode}\\nVenue: ${event.venue}`;
-    const location = `${event.venue}, ${event.address}`;
-
-    // Simple standard ICS template
-    const icsContent = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//Sravya and Karthik Wedding//EN",
-      "CALSCALE:GREGORIAN",
-      "BEGIN:VEVENT",
-      `SUMMARY:${title}`,
-      `DESCRIPTION:${description}`,
-      `LOCATION:${location}`,
-      `DTSTART;TZID=Asia/Kolkata:20261218T103000`,
-      `DTEND;TZID=Asia/Kolkata:20261218T140000`,
-      "STATUS:CONFIRMED",
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n");
-
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-    const link = document.createElement("a");
-    link.href = window.URL.createObjectURL(blob);
-    link.setAttribute("download", `${event.id}.ics`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const stepsPerGap = 9;
 
   return (
     <section
@@ -118,35 +106,24 @@ export const EventsTimeline: React.FC = () => {
           Array.from({ length: stepsPerGap }, (_, stepIndex) => {
             const progress = (stepIndex + 1) / (stepsPerGap + 1);
             const direction = segmentIndex % 2 === 0 ? 1 : -1;
-            const desktopOffset = direction * (34 - progress * 68);
-            const mobileOffset = direction * (5 - progress * 10);
-            const rotation = direction * (stepIndex % 2 === 0 ? -8 : 8);
+            const amplitude = 52;
+            const desktopOffset = direction * amplitude * Math.cos(Math.PI * progress);
+            const verticalSpan = 31 * 16;
+            const rotation = Math.atan2(
+              -direction * amplitude * Math.PI * Math.sin(Math.PI * progress),
+              verticalSpan
+            ) * (180 / Math.PI);
 
             return (
-              <svg
+              <FootprintPair
                 key={`footsteps-${event.id}-${stepIndex}`}
-                aria-hidden="true"
-                focusable="false"
-                viewBox="0 0 36 48"
-                className="pointer-events-none absolute left-[calc(1.5rem_+_var(--mobile-offset))] z-10 h-10 w-8 md:left-[calc(50%_+_var(--desktop-offset))] md:h-11 md:w-9"
+                className="pointer-events-none absolute left-[calc(50%_+_var(--desktop-offset))] z-10 h-10 w-8 text-[#8B1E2D] md:h-11 md:w-9"
                 style={{
                   top: `${((segmentIndex + 0.5 + progress) / events.length) * 100}%`,
                   transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-                  "--mobile-offset": `${mobileOffset}px`,
                   "--desktop-offset": `${desktopOffset}px`,
                 } as React.CSSProperties}
-              >
-                <g fill="#8B1E2D" fillOpacity="0.88">
-                  <g transform="translate(3 2) rotate(-13 8 8)">
-                    <path d="M8 9C3 9 2 15 4 21c1.2 3.5 3.1 6 5 5.7 3.1-.4 4.7-5.2 4.4-9.8C13.1 12.7 11.2 9 8 9Z" />
-                    <circle cx="4" cy="5" r="2.1" /><circle cx="8" cy="3.6" r="2.2" /><circle cx="12" cy="5" r="1.9" />
-                  </g>
-                  <g transform="translate(17 22) rotate(12 8 8)">
-                    <path d="M8 9C3 9 2 15 4 21c1.2 3.5 3.1 6 5 5.7 3.1-.4 4.7-5.2 4.4-9.8C13.1 12.7 11.2 9 8 9Z" />
-                    <circle cx="4" cy="5" r="2.1" /><circle cx="8" cy="3.6" r="2.2" /><circle cx="12" cy="5" r="1.9" />
-                  </g>
-                </g>
-              </svg>
+              />
             );
           })
         )}
@@ -158,7 +135,7 @@ export const EventsTimeline: React.FC = () => {
             return (
               <div
                 key={event.id}
-                className="relative grid min-h-[29rem] grid-cols-[minmax(0,1fr)_9rem_minmax(0,1fr)] items-center gap-0"
+                className="relative grid min-h-[31rem] grid-cols-[minmax(0,1fr)_9rem_minmax(0,1fr)] items-center gap-0"
               >
                 {/* Numbered markers remain separate from the footprint trail. */}
                 <div
@@ -182,8 +159,8 @@ export const EventsTimeline: React.FC = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className={`flex w-full items-center py-8 ${
-                    isEven ? "col-start-1 justify-end pr-6" : "col-start-3 justify-start pl-6"
+                  className={`flex w-full items-center py-4 ${
+                    isEven ? "col-start-1 justify-end pr-3" : "col-start-3 justify-start pl-3"
                   }`}
                 >
                   <EventIllustration icon={event.icon} />
@@ -195,14 +172,8 @@ export const EventsTimeline: React.FC = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                className={`min-w-0 w-full py-7 text-center ${isEven ? "col-start-3" : "col-start-1"}`}
+                className={`min-w-0 w-full max-w-[22rem] py-4 text-center ${isEven ? "col-start-3 justify-self-start" : "col-start-1 justify-self-end"}`}
                 >
-                  {event.isMainEvent && (
-                    <p className="mb-1 flex items-center justify-center gap-1 font-serif-royal text-[9px] font-bold uppercase tracking-wider text-[#9A7730] sm:text-[10px]">
-                      <Sparkles className="h-3 w-3 shrink-0" />
-                      Auspicious Muhurtham Ceremony
-                    </p>
-                  )}
                   <span className="font-telugu block text-[11px] font-semibold leading-snug text-[#8B1E2D] sm:text-xs">
                     {event.teluguTitle}
                   </span>
@@ -226,15 +197,7 @@ export const EventsTimeline: React.FC = () => {
                       <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#9A7730]" />
                       <span>{event.venue}</span>
                     </p>
-                    <p className="mt-0.5">{event.address}</p>
                   </div>
-
-                  <p className="font-serif-elegant mx-auto mt-2 max-w-md text-[11px] leading-snug text-[#6E604D] sm:text-xs">
-                    {event.description}
-                  </p>
-                  <p className="mt-1 text-[10px] leading-snug text-[#8B1E2D] sm:text-[11px]">
-                    <span className="font-semibold">Dress Code: </span>{event.dressCode}
-                  </p>
 
                   <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                     <a
@@ -247,13 +210,6 @@ export const EventsTimeline: React.FC = () => {
                       <span>View Map</span>
                       <ExternalLink className="h-2.5 w-2.5" />
                     </a>
-                    <button
-                      onClick={() => generateIcsCalendar(event)}
-                      className="inline-flex items-center justify-center gap-1 rounded-full border border-[#C9A45C]/70 px-3 py-1.5 font-serif-royal text-[10px] font-semibold text-[#6D1429] transition-colors hover:bg-[#F5EBD8] sm:text-[11px]"
-                    >
-                      <Calendar className="h-3 w-3" />
-                      <span>Add to Calendar</span>
-                    </button>
                   </div>
                 </motion.div>
               </div>
@@ -269,7 +225,7 @@ export const EventsTimeline: React.FC = () => {
           const isEven = index % 2 === 0;
           return (
             <React.Fragment key={event.id}>
-              <article className={`grid items-center gap-3 py-3 ${isEven ? "grid-cols-[minmax(0,1fr)_5rem]" : "grid-cols-[5rem_minmax(0,1fr)]"}`}>
+              <article className={`grid items-center gap-2 py-2 ${isEven ? "grid-cols-[minmax(0,1fr)_4rem] sm:grid-cols-[minmax(0,1fr)_5rem]" : "grid-cols-[4rem_minmax(0,1fr)] sm:grid-cols-[5rem_minmax(0,1fr)]"}`}>
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -277,7 +233,6 @@ export const EventsTimeline: React.FC = () => {
                   transition={{ duration: 0.45 }}
                   className={`min-w-0 py-1 ${isEven ? "col-start-1 row-start-1 text-left" : "col-start-2 row-start-1 text-right"}`}
                 >
-                  {event.isMainEvent && <p className={`mb-1 flex items-center gap-1 font-serif-royal text-[9px] font-bold uppercase leading-tight tracking-wide text-[#9A7730] ${isEven ? "justify-start" : "justify-end"}`}><Sparkles className="h-3 w-3 shrink-0" />Auspicious Muhurtham Ceremony</p>}
                   <span className="font-telugu block text-[11px] font-semibold leading-snug text-[#8B1E2D]">{event.teluguTitle}</span>
                   <h3 className="font-serif-royal mt-1 text-[17px] font-bold leading-tight text-[#6D1429]">{event.title}</h3>
                   <div className="font-serif-elegant mt-2 space-y-1 text-[13px] leading-snug text-[#8B1E2D]">
@@ -286,17 +241,11 @@ export const EventsTimeline: React.FC = () => {
                   </div>
                   <div className="mt-2 text-[11px] leading-snug text-[#736044]">
                     <p className={`flex items-start gap-1.5 font-semibold text-[#6D1429] ${isEven ? "justify-start" : "justify-end"}`}><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#9A7730]" /><span>{event.venue}</span></p>
-                    <p className="mt-0.5">{event.address}</p>
                   </div>
-                  <p className="font-serif-elegant mt-2 text-[11px] leading-snug text-[#6E604D]">{event.description}</p>
-                  <p className="mt-1 text-[10px] leading-snug text-[#8B1E2D]"><span className="font-semibold">Dress Code: </span>{event.dressCode}</p>
                   <div className={`mt-3 flex flex-wrap gap-2 ${isEven ? "justify-start" : "justify-end"}`}>
                     <a href={event.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center justify-center gap-1 rounded-full border border-[#C9A45C] px-3 py-1.5 font-serif-royal text-[10px] font-semibold uppercase tracking-wide text-[#8B1E2D]">
                       <MapPin className="h-3 w-3" /><span>View Map</span><ExternalLink className="h-2.5 w-2.5" />
                     </a>
-                    <button onClick={() => generateIcsCalendar(event)} className="inline-flex min-h-9 items-center justify-center gap-1 rounded-full border border-[#C9A45C]/70 px-3 py-1.5 font-serif-royal text-[10px] font-semibold text-[#6D1429]">
-                      <Calendar className="h-3 w-3" /><span>Add to Calendar</span>
-                    </button>
                   </div>
                 </motion.div>
                 <div className={`flex min-w-0 flex-col items-center gap-2 ${isEven ? "col-start-2 row-start-1" : "col-start-1 row-start-1"}`}>
@@ -307,18 +256,26 @@ export const EventsTimeline: React.FC = () => {
                 </div>
               </article>
               {index < events.length - 1 && (
-                <div aria-hidden="true" className="mx-auto grid h-12 w-28 grid-rows-3 items-center">
-                  {[0, 1, 2].map((step) => {
-                    const fromIllustrationSide = isEven ? step === 0 : step === 2;
-                    const toIllustrationSide = isEven ? step === 2 : step === 0;
-                    const position = fromIllustrationSide ? "justify-self-end" : toIllustrationSide ? "justify-self-start" : "justify-self-center";
-                    const tilt = step === 1 ? "rotate-12" : isEven ? "-rotate-12" : "rotate-6";
-                    return <svg key={step} viewBox="0 0 36 48" className={`h-5 w-4 text-[#9A7730] ${position} ${tilt}`}>
-                      <g fill="currentColor" fillOpacity="0.82">
-                        <g transform="translate(3 2) rotate(-13 8 8)"><path d="M8 9C3 9 2 15 4 21c1.2 3.5 3.1 6 5 5.7 3.1-.4 4.7-5.2 4.4-9.8C13.1 12.7 11.2 9 8 9Z"/><circle cx="4" cy="5" r="2.1"/><circle cx="8" cy="3.6" r="2.2"/><circle cx="12" cy="5" r="1.9"/></g>
-                        <g transform="translate(17 22) rotate(12 8 8)"><path d="M8 9C3 9 2 15 4 21c1.2 3.5 3.1 6 5 5.7 3.1-.4 4.7-5.2 4.4-9.8C13.1 12.7 11.2 9 8 9Z"/><circle cx="4" cy="5" r="2.1"/><circle cx="8" cy="3.6" r="2.2"/><circle cx="12" cy="5" r="1.9"/></g>
-                      </g>
-                    </svg>;
+                <div aria-hidden="true" className="relative mx-auto h-28 w-[32vw] min-w-28 max-w-32">
+                  {Array.from({ length: 5 }, (_, step) => {
+                    const progress = (step + 1) / 6;
+                    const direction = isEven ? 1 : -1;
+                    const lateralPercent = direction * 22 * Math.cos(Math.PI * progress);
+                    const rotation = Math.atan2(
+                      -direction * 28 * Math.PI * Math.sin(Math.PI * progress),
+                      112
+                    ) * (180 / Math.PI);
+                    return (
+                      <FootprintPair
+                        key={step}
+                        className="pointer-events-none absolute h-4 w-3 text-[#8B1E2D]"
+                        style={{
+                          left: `${50 + lateralPercent}%`,
+                          top: `${progress * 100}%`,
+                          transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+                        }}
+                      />
+                    );
                   })}
                 </div>
               )}
