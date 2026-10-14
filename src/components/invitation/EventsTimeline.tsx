@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { weddingConfig } from "@/data/wedding-data";
 import { FloralDivider } from "../traditional/OrnamentalBorders";
@@ -24,6 +24,13 @@ const FootprintPair: React.FC<{ className?: string; style?: React.CSSProperties 
     </g>
   </svg>
 );
+
+type MobileFootstep = {
+  key: string;
+  left: number;
+  top: number;
+  rotation: number;
+};
 
 const EventIllustration: React.FC<{ icon: string }> = ({ icon }) => (
   <svg aria-hidden="true" viewBox="0 0 120 120" className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24">
@@ -65,6 +72,96 @@ const EventIllustration: React.FC<{ icon: string }> = ({ icon }) => (
 export const EventsTimeline: React.FC = () => {
   const { events } = weddingConfig;
   const stepsPerGap = 9;
+  const mobileTimelineRef = useRef<HTMLDivElement>(null);
+  const [mobileFootsteps, setMobileFootsteps] = useState<MobileFootstep[]>([]);
+
+  useEffect(() => {
+    const timeline = mobileTimelineRef.current;
+    if (!timeline) return;
+
+    const updateTrail = () => {
+      const bounds = timeline.getBoundingClientRect();
+      const markers = Array.from(timeline.querySelectorAll<HTMLElement>("[data-event-marker]"));
+      if (bounds.width === 0 || markers.length < 2) {
+        setMobileFootsteps([]);
+        return;
+      }
+
+      const markerCenters = markers.map((marker) => {
+        const rect = marker.getBoundingClientRect();
+        return {
+          x: rect.left + rect.width / 2 - bounds.left,
+          y: rect.top + rect.height / 2 - bounds.top,
+        };
+      });
+      const nextFootsteps: MobileFootstep[] = [];
+
+      markerCenters.slice(0, -1).forEach((start, segmentIndex) => {
+        const end = markerCenters[segmentIndex + 1];
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        if (dy <= 0) return;
+
+        const amplitude = Math.min(56, bounds.width * 0.16);
+        const waveDirection = segmentIndex % 2 === 0 ? 1 : -1;
+        const pointAt = (t: number) => {
+          const easedProgress = 3 * t * t - 2 * t * t * t;
+          const envelope = Math.sin(Math.PI * t) ** 2;
+          const wave = envelope * Math.sin(2 * Math.PI * t);
+          const envelopeSlope = Math.PI * Math.sin(2 * Math.PI * t);
+          const waveSlope = envelopeSlope * Math.sin(2 * Math.PI * t)
+            + envelope * 2 * Math.PI * Math.cos(2 * Math.PI * t);
+          const horizontalSlope = dx * 6 * t * (1 - t) + waveDirection * amplitude * waveSlope;
+          return {
+            x: Math.max(8, Math.min(bounds.width - 8, start.x + dx * easedProgress + waveDirection * amplitude * wave)),
+            y: start.y + dy * t,
+            rotation: Math.atan2(-horizontalSlope, dy) * (180 / Math.PI),
+          };
+        };
+
+        // Approximate the path length so each pair is spaced evenly along the curve.
+        const samples = Array.from({ length: 121 }, (_, index) => pointAt(index / 120));
+        const lengths = [0];
+        for (let index = 1; index < samples.length; index += 1) {
+          const previous = samples[index - 1];
+          const current = samples[index];
+          lengths.push(lengths[index - 1] + Math.hypot(current.x - previous.x, current.y - previous.y));
+        }
+
+        const totalLength = lengths[lengths.length - 1];
+        const stepCount = Math.max(12, Math.min(30, Math.ceil(totalLength / 16)));
+        for (let step = 0; step < stepCount; step += 1) {
+          const targetLength = totalLength * (step + 1) / (stepCount + 1);
+          let sampleIndex = lengths.findIndex((length) => length >= targetLength);
+          if (sampleIndex < 1) sampleIndex = 1;
+          const previousLength = lengths[sampleIndex - 1];
+          const segmentLength = lengths[sampleIndex] - previousLength || 1;
+          const sampleProgress = (targetLength - previousLength) / segmentLength;
+          const t = ((sampleIndex - 1) + sampleProgress) / 120;
+          const point = pointAt(t);
+          nextFootsteps.push({
+            key: `${segmentIndex}-${step}`,
+            left: point.x,
+            top: point.y,
+            rotation: point.rotation,
+          });
+        }
+      });
+
+      setMobileFootsteps(nextFootsteps);
+    };
+
+    updateTrail();
+    const observer = new ResizeObserver(updateTrail);
+    observer.observe(timeline);
+    timeline.querySelectorAll<HTMLElement>("[data-event-marker]").forEach((marker) => observer.observe(marker));
+    window.addEventListener("resize", updateTrail);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateTrail);
+    };
+  }, [events.length]);
 
   return (
     <section
@@ -220,12 +317,25 @@ export const EventsTimeline: React.FC = () => {
 
       {/* Mobile journey keeps the event copy in the wide track and the art in
           the narrow track. The tracks swap sides on alternating events. */}
-      <div className="relative z-10 mx-auto max-w-[430px] md:hidden">
+      <div ref={mobileTimelineRef} className="relative z-10 mx-auto max-w-[430px] md:hidden">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
+          {mobileFootsteps.map((footstep) => (
+            <FootprintPair
+              key={footstep.key}
+              className="absolute h-3 w-[9px] text-[#8B1E2D]"
+              style={{
+                left: `${footstep.left}px`,
+                top: `${footstep.top}px`,
+                transform: `translate(-50%, -50%) rotate(${footstep.rotation}deg)`,
+              }}
+            />
+          ))}
+        </div>
         {events.map((event, index) => {
           const isEven = index % 2 === 0;
           return (
             <React.Fragment key={event.id}>
-              <article className={`grid items-center gap-2 py-2 ${isEven ? "grid-cols-[minmax(0,1fr)_4rem] sm:grid-cols-[minmax(0,1fr)_5rem]" : "grid-cols-[4rem_minmax(0,1fr)] sm:grid-cols-[5rem_minmax(0,1fr)]"}`}>
+              <article className={`relative z-20 grid items-center gap-2 py-2 ${isEven ? "grid-cols-[minmax(0,1fr)_4rem] sm:grid-cols-[minmax(0,1fr)_5rem]" : "grid-cols-[4rem_minmax(0,1fr)] sm:grid-cols-[5rem_minmax(0,1fr)]"}`}>
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -249,35 +359,14 @@ export const EventsTimeline: React.FC = () => {
                   </div>
                 </motion.div>
                 <div className={`flex min-w-0 flex-col items-center gap-2 ${isEven ? "col-start-2 row-start-1" : "col-start-1 row-start-1"}`}>
-                  <span aria-hidden="true" className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#C9A45C] bg-[#FFF8E9] shadow-sm ${event.isMainEvent ? "text-[#FFF8E9]" : "text-[#8B1E2D]"}`}>
+                  <span data-event-marker={index} aria-hidden="true" className={`relative z-30 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#C9A45C] bg-[#FFF8E9] shadow-sm ${event.isMainEvent ? "text-[#FFF8E9]" : "text-[#8B1E2D]"}`}>
                     <span className={`flex h-6 w-6 items-center justify-center rounded-full font-serif-royal text-xs font-bold ${event.isMainEvent ? "bg-[#8B1E2D]" : "bg-[#C9A45C]/20"}`}>{index + 1}</span>
                   </span>
                   <EventIllustration icon={event.icon} />
                 </div>
               </article>
               {index < events.length - 1 && (
-                <div aria-hidden="true" className="relative mx-auto h-28 w-[32vw] min-w-28 max-w-32">
-                  {Array.from({ length: 5 }, (_, step) => {
-                    const progress = (step + 1) / 6;
-                    const direction = isEven ? 1 : -1;
-                    const lateralPercent = direction * 22 * Math.cos(Math.PI * progress);
-                    const rotation = Math.atan2(
-                      -direction * 28 * Math.PI * Math.sin(Math.PI * progress),
-                      112
-                    ) * (180 / Math.PI);
-                    return (
-                      <FootprintPair
-                        key={step}
-                        className="pointer-events-none absolute h-4 w-3 text-[#8B1E2D]"
-                        style={{
-                          left: `${50 + lateralPercent}%`,
-                          top: `${progress * 100}%`,
-                          transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-                        }}
-                      />
-                    );
-                  })}
-                </div>
+                <div aria-hidden="true" className="h-28" />
               )}
             </React.Fragment>
           );
