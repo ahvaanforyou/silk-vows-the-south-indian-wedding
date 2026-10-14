@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { weddingConfig } from "@/data/wedding-data";
 import { ToranHeader } from "../traditional/ToranHeader";
 import { BrassDiya } from "../traditional/BrassDiya";
@@ -19,10 +19,34 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
   onOpen,
 }) => {
   const [isOpening, setIsOpening] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+  const openButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    openButtonRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
+  const keepFocusInDialog = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Tab") {
+      event.preventDefault();
+      openButtonRef.current?.focus();
+    }
+  };
 
   const handleOpenClick = () => {
     if (isOpening) return;
     setIsOpening(true);
+    if (prefersReducedMotion) {
+      onOpen();
+      return;
+    }
     // Allow smooth animation to begin, then inform parent
     setTimeout(() => {
       onOpen();
@@ -34,24 +58,28 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
       {!isOpen && (
         <motion.div
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B050E]/90 backdrop-blur-md p-3 sm:p-6 overflow-hidden perspective-2000"
+          exit={{ opacity: 0, transition: { duration: prefersReducedMotion ? 0.01 : 0.8, ease: "easeInOut" } }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Wedding invitation opening"
+          onKeyDown={keepFocusInDialog}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B050E]/90 backdrop-blur-md p-3 sm:p-6 overflow-y-auto overscroll-contain perspective-2000"
         >
           {/* Subtle Ambient Glow behind card */}
           <div className="absolute w-[80vw] h-[80vh] max-w-2xl max-h-[800px] bg-[#8B1E2D]/40 rounded-full blur-3xl pointer-events-none" />
 
           {/* Traditional Card Container */}
           <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 15 }}
+            initial={{ scale: prefersReducedMotion ? 1 : 0.95, opacity: prefersReducedMotion ? 1 : 0, y: prefersReducedMotion ? 0 : 15 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{
+            exit={prefersReducedMotion ? { opacity: 0 } : {
               scale: 1.08,
               opacity: 0,
               rotateX: 10,
               transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
             }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative w-full max-w-xl max-h-[92vh] sm:max-h-[88vh] flex flex-col justify-between rounded-2xl shadow-2xl overflow-hidden border-2 border-[#C9A45C] bg-gradient-to-b from-[#6D1429] via-[#520C1C] to-[#3B0713] text-[#FFF8E9] select-none"
+            transition={{ duration: prefersReducedMotion ? 0 : 0.6, ease: "easeOut" }}
+            className="relative w-full max-w-lg max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-3rem)] flex flex-col rounded-2xl shadow-2xl overflow-hidden border-2 border-[#C9A45C] bg-gradient-to-b from-[#6D1429] via-[#520C1C] to-[#3B0713] text-[#FFF8E9] select-none"
           >
             {/* Silk cloth texture effect & border inlays */}
             <div className="absolute inset-2 sm:inset-3 border border-[#E3C98A]/50 rounded-xl pointer-events-none" />
@@ -72,12 +100,12 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
             </div>
 
             {/* Top Mango Leaf Toran */}
-            <div className="relative z-20 w-full pt-1">
+            <div className="relative z-20 w-full shrink-0 pt-1">
               <ToranHeader leafCount={7} />
             </div>
 
             {/* Central Invitation Card Body */}
-            <div className="relative z-10 px-5 sm:px-10 py-3 sm:py-6 flex flex-col items-center text-center my-auto">
+            <div className="relative z-10 min-h-0 flex-[1_1_auto] overflow-y-auto overscroll-contain px-5 sm:px-8 py-2 sm:py-3 flex flex-col items-center justify-center text-center">
               {/* Sacred Sanskrit / Telugu Ganesha Invocation */}
               <div className="mb-2">
                 <p className="font-serif-royal text-base sm:text-lg tracking-widest text-[#E3C98A] font-semibold drop-shadow-sm">
@@ -131,26 +159,28 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
               </div>
 
               {/* Brass Diya illustration */}
-              <div className="mt-2 mb-1">
+              <div className="mt-1 mb-0">
                 <BrassDiya size={50} />
               </div>
             </div>
 
             {/* Bottom Tap to Open Interactive Button */}
-            <div className="relative z-20 pb-5 sm:pb-7 pt-2 flex flex-col items-center">
+            <div className="relative z-20 shrink-0 pb-3 sm:pb-4 pt-1 flex flex-col items-center bg-gradient-to-b from-transparent to-[#3B0713]">
               <motion.button
+                ref={openButtonRef}
                 onClick={handleOpenClick}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                className="group relative px-7 sm:px-9 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-[#9A7730] via-[#D4AF37] to-[#9A7730] text-[#3B0713] font-serif-royal font-bold text-sm sm:text-base tracking-widest uppercase shadow-xl hover:shadow-[#D4AF37]/50 transition-all duration-300 border border-[#FFF2B2] overflow-hidden cursor-pointer"
+                whileHover={prefersReducedMotion ? undefined : { scale: 1.04 }}
+                whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
+                aria-busy={isOpening}
+                className="group relative min-h-12 px-6 sm:px-9 py-3 rounded-full bg-gradient-to-r from-[#9A7730] via-[#D4AF37] to-[#9A7730] text-[#3B0713] font-serif-royal font-bold text-sm sm:text-base tracking-widest uppercase shadow-xl hover:shadow-[#D4AF37]/50 transition-all duration-300 border border-[#FFF2B2] overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFF2B2]/70"
               >
                 {/* Button Shimmer Beam */}
-                <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000" />
+                {!prefersReducedMotion && <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000" />}
 
                 <span className="relative flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4 text-[#3B0713] animate-spin" style={{ animationDuration: "6s" }} />
+                  <Sparkles className={`w-4 h-4 text-[#3B0713] ${prefersReducedMotion ? "" : "animate-spin"}`} style={{ animationDuration: "6s" }} />
                   <span>✦ Tap to Open ✦</span>
-                  <Sparkles className="w-4 h-4 text-[#3B0713] animate-spin" style={{ animationDuration: "6s" }} />
+                  <Sparkles className={`w-4 h-4 text-[#3B0713] ${prefersReducedMotion ? "" : "animate-spin"}`} style={{ animationDuration: "6s" }} />
                 </span>
               </motion.button>
 
