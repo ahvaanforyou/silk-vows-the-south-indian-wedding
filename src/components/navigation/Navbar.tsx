@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { weddingConfig } from "@/data/wedding-data";
 import { Menu, X } from "lucide-react";
+import { ToranHeader } from "../traditional/ToranHeader";
 
 export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -53,17 +54,24 @@ export const Navbar: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 select-none ${
-        isScrolled
-          ? "bg-[#FFF8E9]/95 backdrop-blur-md shadow-md border-b border-[#C9A45C]/40 py-2.5"
-          : "bg-transparent py-4"
+      className={`fixed top-0 left-0 right-0 z-40 select-none bg-[#FFF8E9]/95 backdrop-blur-md transition-all duration-300 ${
+        isScrolled ? "shadow-md border-b border-[#C9A45C]/40" : ""
       }`}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+      <div
+        aria-hidden="true"
+        className={`overflow-hidden transition-[height,opacity] duration-300 ${
+          isScrolled ? "h-0 opacity-0" : "h-20 opacity-100"
+        }`}
+      >
+        <ToranHeader leafCount={9} expanded className="max-w-4xl mx-auto" />
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
         {/* Logo / Couple Monogram */}
         <button
           onClick={() => scrollToSection("hero")}
-          className="flex items-center space-x-2 text-left cursor-pointer group"
+          className="flex shrink-0 items-center space-x-2 text-left cursor-pointer group"
         >
           <div className="w-8 h-8 rounded-full border border-[#C9A45C] bg-[#6D1429] text-[#E3C98A] flex items-center justify-center font-serif-royal font-bold text-xs shadow-sm">
             S&K
@@ -79,14 +87,14 @@ export const Navbar: React.FC = () => {
         </button>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+        <nav className="hidden lg:flex shrink-0 items-center space-x-1 lg:space-x-2">
           {navItems.map((item) => {
             const isActive = activeSection === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`px-3 py-1.5 rounded-full text-xs lg:text-sm font-serif-royal font-semibold transition-all duration-200 cursor-pointer ${
+                className={`px-2.5 xl:px-3 py-1.5 rounded-full text-xs lg:text-sm font-serif-royal font-semibold transition-all duration-200 cursor-pointer ${
                   isActive
                     ? "bg-[#6D1429] text-[#FFF8E9] shadow-sm"
                     : "text-[#6D1429] hover:text-[#8B1E2D] hover:bg-[#F5EBD8]/70"
@@ -101,7 +109,7 @@ export const Navbar: React.FC = () => {
         {/* Mobile Hamburger Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden w-10 h-10 rounded-full border border-[#C9A45C] bg-[#FFF8E9] text-[#6D1429] flex items-center justify-center shadow-sm cursor-pointer"
+          className="lg:hidden shrink-0 w-10 h-10 rounded-full border border-[#C9A45C] bg-[#FFF8E9] text-[#6D1429] flex items-center justify-center shadow-sm cursor-pointer"
           aria-label="Toggle Navigation Menu"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -110,7 +118,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#FFF8E9] border-b-2 border-[#C9A45C] px-5 py-4 shadow-xl">
+        <div className="lg:hidden bg-[#FFF8E9] border-b-2 border-[#C9A45C] px-5 py-4 shadow-xl">
           <div className="flex flex-col space-y-2">
             {navItems.map((item) => {
               const isActive = activeSection === item.id;

@@ -3,7 +3,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { weddingConfig } from "@/data/wedding-data";
-import { ToranHeader } from "../traditional/ToranHeader";
 import { TempleArch } from "../traditional/TempleArch";
 import { KalashIcon } from "../traditional/KalashIcon";
 import { FloralDivider } from "../traditional/OrnamentalBorders";
@@ -20,13 +19,8 @@ export const WeddingHero: React.FC = () => {
   return (
     <section
       id="hero"
-      className="relative min-h-screen w-full flex flex-col justify-between items-center bg-gradient-to-b from-[#FFFDF8] via-[#FFF8E9] to-[#F5EBD8] text-[#4A0B1A] pt-4 pb-8 px-4 sm:px-6 overflow-hidden select-none"
+      className="relative min-h-screen w-full flex flex-col justify-between items-center bg-gradient-to-b from-[#FFFDF8] via-[#FFF8E9] to-[#F5EBD8] text-[#4A0B1A] pt-36 pb-8 px-4 sm:px-6 overflow-hidden select-none"
     >
-      {/* Top Mango Leaf Toran */}
-      <div className="w-full max-w-4xl pt-1 pointer-events-none">
-        <ToranHeader leafCount={9} />
-      </div>
-
       {/* Main Temple Arch Card Framing the Couple */}
       <div className="w-full max-w-2xl my-auto py-4">
         <TempleArch theme="gold">

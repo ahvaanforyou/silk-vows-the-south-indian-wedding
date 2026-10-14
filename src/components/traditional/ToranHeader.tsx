@@ -5,16 +5,18 @@ import React from "react";
 interface ToranHeaderProps {
   className?: string;
   leafCount?: number;
+  expanded?: boolean;
 }
 
 export const ToranHeader: React.FC<ToranHeaderProps> = ({
   className = "",
   leafCount = 9,
+  expanded = false,
 }) => {
   return (
-    <div className={`w-full overflow-hidden select-none pointer-events-none ${className}`}>
+    <div className={`w-full ${expanded ? "h-20" : "overflow-hidden"} select-none pointer-events-none ${className}`}>
       {/* Top sacred rope garland */}
-      <div className="relative w-full h-8 flex items-center justify-center">
+      <div className={`relative w-full ${expanded ? "h-20" : "h-8"} flex items-start justify-center`}>
         {/* Yellow-Orange marigold rope */}
         <div className="absolute top-1 left-0 right-0 h-1.5 bg-gradient-to-r from-[#D97706] via-[#F59E0B] to-[#D97706] shadow-sm rounded-full" />
 

@@ -70,7 +70,7 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
 
           {/* Traditional Card Container */}
           <motion.div
-            initial={{ scale: prefersReducedMotion ? 1 : 0.95, opacity: prefersReducedMotion ? 1 : 0, y: prefersReducedMotion ? 0 : 15 }}
+            initial={{ scale: prefersReducedMotion ? 1 : 0.95, opacity: 1, y: prefersReducedMotion ? 0 : 15 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={prefersReducedMotion ? { opacity: 0 } : {
               scale: 1.08,
