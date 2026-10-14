@@ -264,6 +264,6 @@ export const weddingConfig: WeddingConfig = {
     enabled: true,
     title: "Mangala Vaadhyam",
     subtitle: "Nadaswaram & Thavil Traditional Wedding Harmony",
-    src: "/audio/traditional-wedding-nadaswaram.mp3",
+    src: "/audio/seetha-kalyana.mp3",
   },
 };

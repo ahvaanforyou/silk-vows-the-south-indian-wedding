@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { InvitationCover } from "@/components/invitation/InvitationCover";
 import { Navbar } from "@/components/navigation/Navbar";
 import { WeddingHero } from "@/components/invitation/WeddingHero";
@@ -11,17 +11,18 @@ import { PhotoGallery } from "@/components/invitation/PhotoGallery";
 import { VenueSection } from "@/components/invitation/VenueSection";
 import { RSVPSection } from "@/components/invitation/RSVPSection";
 import { WeddingFooter } from "@/components/invitation/WeddingFooter";
-import { MusicPlayer } from "@/components/invitation/MusicPlayer";
+import { MusicPlayer, type MusicPlayerHandle } from "@/components/invitation/MusicPlayer";
 import { PetalShower } from "@/components/traditional/PetalShower";
 
 export default function WeddingPage() {
   const [isInvitationOpen, setIsInvitationOpen] = useState(false);
-  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const musicPlayerRef = useRef<MusicPlayerHandle>(null);
 
   const handleOpenInvitation = () => {
     setIsInvitationOpen(true);
-    setHasUserInteracted(true);
   };
+
+  const handleStartMusic = () => musicPlayerRef.current?.play();
 
   return (
     <main className="relative min-h-screen bg-[#FFF8E9] overflow-x-hidden">
@@ -29,6 +30,7 @@ export default function WeddingPage() {
       <InvitationCover
         isOpen={isInvitationOpen}
         onOpen={handleOpenInvitation}
+        onStartMusic={handleStartMusic}
       />
 
       {/* Floating flower petal atmosphere */}
@@ -48,7 +50,7 @@ export default function WeddingPage() {
       <WeddingFooter />
 
       {/* Traditional Nadaswaram Music Player */}
-      <MusicPlayer autoPlayTrigger={hasUserInteracted} />
+      <MusicPlayer ref={musicPlayerRef} />
     </main>
   );
 }

@@ -12,11 +12,13 @@ import { Sparkles } from "lucide-react";
 interface InvitationCoverProps {
   isOpen: boolean;
   onOpen: () => void;
+  onStartMusic?: () => void;
 }
 
 export const InvitationCover: React.FC<InvitationCoverProps> = ({
   isOpen,
   onOpen,
+  onStartMusic,
 }) => {
   const [isOpening, setIsOpening] = useState(false);
   const prefersReducedMotion = useReducedMotion();
@@ -43,6 +45,7 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
   const handleOpenClick = () => {
     if (isOpening) return;
     setIsOpening(true);
+    onStartMusic?.();
     if (prefersReducedMotion) {
       onOpen();
       return;
