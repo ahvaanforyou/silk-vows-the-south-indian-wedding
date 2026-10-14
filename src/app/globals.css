@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+@theme {
+  --color-maroon: #6D1429;
+  --color-maroon-dark: #4A0B1A;
+  --color-temple-red: #8B1E2D;
+  --color-gold: #C9A45C;
+  --color-gold-light: #E3C98A;
+  --color-gold-dark: #9A7730;
+  --color-ivory: #FFF8E9;
+  --color-cream: #F5EBD8;
+  --color-green-deep: #234B38;
+  --color-green-accent: #2E6047;
+  --color-sandalwood: #E8D3B9;
+
+  --font-serif-royal: var(--font-cinzel), serif;
+  --font-serif-elegant: var(--font-cormorant), serif;
+  --font-telugu: var(--font-noto-telugu), sans-serif;
+  --font-sans: var(--font-jakarta), sans-serif;
+}
+
+:root {
+  --maroon: #6D1429;
+  --maroon-dark: #4A0B1A;
+  --temple-red: #8B1E2D;
+  --gold: #C9A45C;
+  --gold-light: #E3C98A;
+  --ivory: #FFF8E9;
+  --cream: #F5EBD8;
+  --green-deep: #234B38;
+}
+
+/* Custom Scrollbar in Antique Gold */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FFF8E9;
+}
+::-webkit-scrollbar-thumb {
+  background: #C9A45C;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6D1429;
+}
+
+/* Card 3D Perspective */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.perspective-2000 {
+  perspective: 2000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Gold Shimmer Text and Borders */
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #9A7730 0%, #E3C98A 35%, #C9A45C 50%, #FFF4D0 65%, #9A7730 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldShimmer 8s linear infinite;
+}
+
+.gold-border-gradient {
+  border-image: linear-gradient(to right, #9A7730, #E3C98A, #C9A45C, #E3C98A, #9A7730) 1;
+}
+
+/* Diya Flame Flicker */
+@keyframes flameFlicker {
+  0%, 100% {
+    transform: scale(1) rotate(-1deg);
+    opacity: 0.95;
+    filter: drop-shadow(0 0 6px rgba(255, 170, 50, 0.8));
+  }
+  25% {
+    transform: scale(1.08, 0.95) rotate(2deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(255, 200, 70, 0.95));
+  }
+  50% {
+    transform: scale(0.96, 1.05) rotate(-2deg);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 5px rgba(255, 140, 30, 0.7));
+  }
+  75% {
+    transform: scale(1.04, 1.02) rotate(1deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 9px rgba(255, 180, 60, 0.9));
+  }
+}
+
+.flame-animation {
+  animation: flameFlicker 1.8s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Bell and Garland Sway */
+@keyframes gentleSway {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(3deg);
+  }
+  75% {
+    transform: rotate(-3deg);
+  }
+}
+
+.sway-animation {
+  animation: gentleSway 4s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+/* Subtle background pattern */
+.bg-kolam-pattern {
+  background-color: #FFF8E9;
+  background-image: radial-gradient(#C9A45C 0.65px, transparent 0.65px), radial-gradient(#C9A45C 0.65px, #FFF8E9 0.65px);
+  background-size: 26px 26px;
+  background-position: 0 0, 13px 13px;
+  background-opacity: 0.08;
+}
+
+/* Touch & tap targets */
+@media (pointer: coarse) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
