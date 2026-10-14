@@ -1,32 +1,32 @@
 import type { Metadata } from "next";
-import { Cinzel, Cormorant_Garamond, Noto_Serif_Telugu, Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const cinzel = Cinzel({
+const cinzel = localFont({
+  src: "./fonts/Cinzel-Variable.ttf",
   variable: "--font-cinzel",
-  subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
+  weight: "400 900",
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
+const cormorant = localFont({
+  src: "./fonts/CormorantGaramond-Variable.ttf",
   variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "300 700",
   display: "swap",
 });
 
-const notoTelugu = Noto_Serif_Telugu({
+const notoTelugu = localFont({
+  src: "./fonts/NotoSerifTelugu-Variable.ttf",
   variable: "--font-noto-telugu",
-  subsets: ["telugu"],
-  weight: ["400", "600", "700"],
+  weight: "100 900",
   display: "swap",
 });
 
-const plusJakarta = Plus_Jakarta_Sans({
+const plusJakarta = localFont({
+  src: "./fonts/PlusJakartaSans-Variable.ttf",
   variable: "--font-jakarta",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: "200 800",
   display: "swap",
 });
 
