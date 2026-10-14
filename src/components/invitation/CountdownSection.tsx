@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useSyncExternalStore } from "react";
+import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { weddingConfig } from "@/data/wedding-data";
 import { CornerOrnament, FloralDivider } from "../traditional/OrnamentalBorders";
@@ -20,6 +20,11 @@ const getServerSnapshot = () => false;
 
 export const CountdownSection: React.FC = () => {
   const hasMounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const scratchCanvasRef = useRef<HTMLCanvasElement>(null);
+  const scratchPointRef = useRef<{ x: number; y: number } | null>(null);
+  const scratchPointerRef = useRef<number | null>(null);
+  const [scratchRevealed, setScratchRevealed] = useState(false);
+  const [scratchLayerRemoved, setScratchLayerRemoved] = useState(false);
 
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
@@ -65,6 +70,115 @@ export const CountdownSection: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (!hasMounted || scratchLayerRemoved || scratchRevealed) return;
+
+    const canvas = scratchCanvasRef.current;
+    const area = canvas?.parentElement;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !area || !context || typeof ResizeObserver === "undefined") {
+      setScratchRevealed(true);
+      return;
+    }
+
+    const drawCover = () => {
+      const bounds = area.getBoundingClientRect();
+      if (bounds.width === 0 || bounds.height === 0) return;
+      const scale = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(bounds.width * scale);
+      canvas.height = Math.round(bounds.height * scale);
+      canvas.style.width = `${bounds.width}px`;
+      canvas.style.height = `${bounds.height}px`;
+      context.setTransform(scale, 0, 0, scale, 0, 0);
+
+      const gradient = context.createLinearGradient(0, 0, bounds.width, bounds.height);
+      gradient.addColorStop(0, "#E9D39B");
+      gradient.addColorStop(0.5, "#F4E6BD");
+      gradient.addColorStop(1, "#D9BD78");
+      context.globalCompositeOperation = "source-over";
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, bounds.width, bounds.height);
+
+      context.strokeStyle = "rgba(109, 20, 41, 0.16)";
+      context.lineWidth = 1;
+      for (let y = 24; y < bounds.height; y += 42) {
+        for (let x = 24; x < bounds.width; x += 42) {
+          context.beginPath();
+          context.moveTo(x, y - 6);
+          context.lineTo(x + 6, y);
+          context.lineTo(x, y + 6);
+          context.lineTo(x - 6, y);
+          context.closePath();
+          context.stroke();
+          context.beginPath();
+          context.arc(x, y, 1.5, 0, Math.PI * 2);
+          context.fillStyle = "rgba(109, 20, 41, 0.22)";
+          context.fill();
+        }
+      }
+
+      context.strokeStyle = "rgba(109, 20, 41, 0.55)";
+      context.lineWidth = 1.5;
+      context.strokeRect(9, 9, bounds.width - 18, bounds.height - 18);
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillStyle = "#6D1429";
+      context.font = "600 16px Georgia, serif";
+      context.fillText("Scratch to reveal our special day", bounds.width / 2, bounds.height / 2);
+      context.font = "12px Georgia, serif";
+      context.fillStyle = "rgba(74, 11, 26, 0.82)";
+      context.fillText("Use your finger or mouse", bounds.width / 2, bounds.height / 2 + 24);
+    };
+
+    drawCover();
+    const observer = new ResizeObserver(drawCover);
+    observer.observe(area);
+    return () => observer.disconnect();
+  }, [hasMounted, scratchLayerRemoved, scratchRevealed]);
+
+  useEffect(() => {
+    if (!scratchRevealed) return;
+    const timeout = window.setTimeout(() => setScratchLayerRemoved(true), 450);
+    return () => window.clearTimeout(timeout);
+  }, [scratchRevealed]);
+
+  const scratchAt = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = scratchCanvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return null;
+    const bounds = canvas.getBoundingClientRect();
+    const point = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+    context.globalCompositeOperation = "destination-out";
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    context.lineWidth = 34;
+    const previous = scratchPointRef.current;
+    context.beginPath();
+    if (previous) {
+      context.moveTo(previous.x, previous.y);
+      context.lineTo(point.x, point.y);
+    } else {
+      context.arc(point.x, point.y, 17, 0, Math.PI * 2);
+    }
+    context.stroke();
+    scratchPointRef.current = point;
+    return point;
+  };
+
+  const checkScratchProgress = () => {
+    const canvas = scratchCanvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context || canvas.width === 0 || canvas.height === 0) return;
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    let transparent = 0;
+    let sampled = 0;
+    for (let i = 3; i < pixels.length; i += 64) {
+      sampled += 1;
+      if (pixels[i] < 24) transparent += 1;
+    }
+    if (sampled > 0 && transparent / sampled >= 0.55) setScratchRevealed(true);
+  };
+
   const timeUnits = [
     { label: "DAYS", value: timeLeft.days, telugu: "రోజులు" },
     { label: "HOURS", value: timeLeft.hours, telugu: "గంటలు" },
@@ -100,61 +214,93 @@ export const CountdownSection: React.FC = () => {
 
         <FloralDivider theme="gold" className="my-6" />
 
-        {/* Dynamic Countdown Grid or Celebration State */}
-        {!hasMounted ? (
-          <div className="h-32 flex items-center justify-center">
-            <span className="text-[#E3C98A] font-serif-royal animate-pulse">
-              Auspicious Muhurtham Loading...
-            </span>
-          </div>
-        ) : timeLeft.isPassed ? (
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="p-8 max-w-lg mx-auto rounded-2xl bg-[#FFF8E9]/10 border-2 border-[#C9A45C] backdrop-blur-md"
-          >
-            <div className="flex justify-center mb-3">
-              <Heart className="w-10 h-10 text-[#E3C98A] fill-[#E3C98A] animate-pulse" />
+        <div className="relative mx-auto mt-6 max-w-3xl">
+          {/* Dynamic Countdown Grid or Celebration State */}
+          {!hasMounted ? (
+            <div className="flex h-32 items-center justify-center">
+              <span className="font-serif-royal text-[#E3C98A] animate-pulse">
+                Auspicious Muhurtham Loading...
+              </span>
             </div>
-            <h3 className="font-serif-royal text-2xl sm:text-3xl font-bold text-[#E3C98A]">
-              The Celebration Has Begun!
-            </h3>
-            <p className="font-serif-elegant text-lg text-[#FFF8E9] mt-2 italic">
-              Celebrating Our Forever with the blessings of our elders and friends.
-            </p>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto mt-6">
-            {timeUnits.map((unit, index) => (
-              <motion.div
-                key={unit.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="relative flex flex-col items-center justify-center p-4 sm:p-6 rounded-2xl bg-[#2B050E]/70 border-2 border-[#C9A45C]/60 shadow-xl backdrop-blur-sm group hover:border-[#E3C98A] transition-all duration-300"
-              >
-                {/* Gold Inner Hairline Frame */}
-                <div className="absolute inset-1.5 border border-dashed border-[#C9A45C]/30 rounded-xl pointer-events-none" />
+          ) : timeLeft.isPassed ? (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="mx-auto max-w-lg rounded-2xl border-2 border-[#C9A45C] bg-[#FFF8E9]/10 p-8 backdrop-blur-md"
+            >
+              <div className="mb-3 flex justify-center">
+                <Heart className="h-10 w-10 fill-[#E3C98A] text-[#E3C98A] animate-pulse" />
+              </div>
+              <h3 className="font-serif-royal text-2xl font-bold text-[#E3C98A] sm:text-3xl">
+                The Celebration Has Begun!
+              </h3>
+              <p className="font-serif-elegant mt-2 text-lg italic text-[#FFF8E9]">
+                Celebrating Our Forever with the blessings of our elders and friends.
+              </p>
+            </motion.div>
+          ) : (
+            <div className="mx-auto grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
+              {timeUnits.map((unit, index) => (
+                <motion.div
+                  key={unit.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="group relative flex flex-col items-center justify-center rounded-2xl border-2 border-[#C9A45C]/60 bg-[#2B050E]/70 p-4 shadow-xl backdrop-blur-sm transition-all duration-300 hover:border-[#E3C98A] sm:p-6"
+                >
+                  <div className="pointer-events-none absolute inset-1.5 rounded-xl border border-dashed border-[#C9A45C]/30" />
+                  <span className="font-serif-royal text-4xl font-extrabold tracking-wider text-[#FFF8E9] drop-shadow-md sm:text-5xl md:text-6xl">
+                    {String(unit.value).padStart(2, "0")}
+                  </span>
+                  <span className="font-serif-royal mt-2 text-xs font-bold uppercase tracking-widest text-[#E3C98A] sm:text-sm">
+                    {unit.label}
+                  </span>
+                  <span className="font-telugu mt-0.5 text-[11px] text-[#E3C98A]/75 sm:text-xs">
+                    {unit.telugu}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
-                {/* Number Value */}
-                <span className="font-serif-royal text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#FFF8E9] tracking-wider drop-shadow-md">
-                  {String(unit.value).padStart(2, "0")}
-                </span>
-
-                {/* English Unit Label */}
-                <span className="font-serif-royal text-xs sm:text-sm font-bold tracking-widest text-[#E3C98A] mt-2 uppercase">
-                  {unit.label}
-                </span>
-
-                {/* Telugu Unit Label */}
-                <span className="font-telugu text-[11px] sm:text-xs text-[#E3C98A]/75 mt-0.5">
-                  {unit.telugu}
-                </span>
-              </motion.div>
-            ))}
+          <div className="sr-only" aria-live="polite">
+            Scratch the decorative surface with a finger or mouse to reveal the wedding countdown. The countdown remains available to assistive technology.
           </div>
-        )}
+          {hasMounted && !scratchLayerRemoved && (
+            <canvas
+              ref={scratchCanvasRef}
+              aria-hidden="true"
+              className={`absolute inset-0 z-20 h-full w-full touch-none cursor-crosshair rounded-2xl transition-opacity duration-500 motion-reduce:transition-none ${
+                scratchRevealed ? "pointer-events-none opacity-0" : "opacity-100"
+              }`}
+              onPointerDown={(event) => {
+                if (scratchRevealed) return;
+                event.preventDefault();
+                event.currentTarget.setPointerCapture(event.pointerId);
+                scratchPointerRef.current = event.pointerId;
+                scratchPointRef.current = null;
+                scratchAt(event);
+              }}
+              onPointerMove={(event) => {
+                if (scratchPointerRef.current !== event.pointerId) return;
+                scratchAt(event);
+              }}
+              onPointerUp={(event) => {
+                if (scratchPointerRef.current !== event.pointerId) return;
+                scratchAt(event);
+                scratchPointerRef.current = null;
+                scratchPointRef.current = null;
+                checkScratchProgress();
+              }}
+              onPointerCancel={() => {
+                scratchPointerRef.current = null;
+                scratchPointRef.current = null;
+                checkScratchProgress();
+              }}
+            />
+          )}
+        </div>
 
         {/* Muhurtham Time Note */}
         <div className="mt-10 inline-flex items-center space-x-2 px-5 py-2 rounded-full bg-[#FFF8E9]/10 border border-[#C9A45C]/50 text-xs sm:text-sm text-[#E3C98A]">

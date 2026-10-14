@@ -181,15 +181,10 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
                 {!prefersReducedMotion && <div className="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000" />}
 
                 <span className="relative flex items-center space-x-2">
-                  <Sparkles className={`w-4 h-4 text-[#3B0713] ${prefersReducedMotion ? "" : "animate-spin"}`} style={{ animationDuration: "6s" }} />
-                  <span>✦ Tap to Open ✦</span>
-                  <Sparkles className={`w-4 h-4 text-[#3B0713] ${prefersReducedMotion ? "" : "animate-spin"}`} style={{ animationDuration: "6s" }} />
+                  <span> Tap to Open </span>
                 </span>
               </motion.button>
 
-              <p className="text-[10px] sm:text-xs text-[#E3C98A]/75 mt-2 tracking-wider">
-                Touch to open the royal invitation card
-              </p>
             </div>
           </motion.div>
         </motion.div>

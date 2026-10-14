@@ -11,6 +11,10 @@ export const PhotoGallery: React.FC = () => {
   const { gallery } = weddingConfig;
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const [hasFocus, setHasFocus] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   const slidesRef = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -21,10 +25,27 @@ export const PhotoGallery: React.FC = () => {
 
     carousel.scrollTo({
       left: slide.offsetLeft - (carousel.clientWidth - slide.clientWidth) / 2,
-      behavior: "smooth",
+      behavior: prefersReducedMotion ? "auto" : "smooth",
     });
     setActiveIndex(index);
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener("change", updatePreference);
+    return () => mediaQuery.removeEventListener("change", updatePreference);
   }, []);
+
+  useEffect(() => {
+    if (isHovered || isInteracting || hasFocus || prefersReducedMotion || lightboxIndex !== null || gallery.length < 2) return;
+
+    const interval = window.setInterval(() => {
+      goToPhoto((activeIndex + 1) % gallery.length);
+    }, 4000);
+    return () => window.clearInterval(interval);
+  }, [activeIndex, gallery.length, goToPhoto, hasFocus, isHovered, isInteracting, lightboxIndex, prefersReducedMotion]);
 
   const handleCarouselScroll = () => {
     const carousel = carouselRef.current;
@@ -84,7 +105,7 @@ export const PhotoGallery: React.FC = () => {
   return (
     <section
       id="gallery"
-      className="relative overflow-hidden bg-[#F5EBD8] px-4 py-24 text-[#4A0B1A] sm:px-6"
+      className="relative overflow-hidden bg-[#F5EBD8] px-4 pt-24 pb-12 text-[#4A0B1A] sm:px-6 sm:py-24"
     >
       <div className="mx-auto mb-12 max-w-4xl text-center">
         <span className="font-telugu mb-1 block text-lg font-bold text-[#8B1E2D]">
@@ -99,7 +120,18 @@ export const PhotoGallery: React.FC = () => {
         <FloralDivider theme="maroon" />
       </div>
 
-      <div className="mx-auto max-w-6xl">
+      <div
+        className="mx-auto max-w-6xl"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onPointerDown={() => setIsInteracting(true)}
+        onPointerUp={() => setIsInteracting(false)}
+        onPointerCancel={() => setIsInteracting(false)}
+        onFocusCapture={() => setHasFocus(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHasFocus(false);
+        }}
+      >
         <div className="relative">
           <div
             ref={carouselRef}
@@ -142,22 +174,22 @@ export const PhotoGallery: React.FC = () => {
             onClick={() => goToPhoto(Math.max(activeIndex - 1, 0))}
             disabled={activeIndex === 0}
             aria-label="Previous gallery photo"
-            className="absolute left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#C9A45C] bg-[#FFF8E9]/95 text-[#6D1429] shadow-lg transition hover:bg-[#6D1429] hover:text-[#FFF8E9] disabled:cursor-not-allowed disabled:opacity-45 sm:left-5 sm:h-12 sm:w-12"
+            className="absolute left-1 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#C9A45C] bg-[#FFF8E9]/95 text-[#6D1429] shadow-lg transition hover:bg-[#6D1429] hover:text-[#FFF8E9] disabled:cursor-not-allowed disabled:opacity-45 sm:left-5 sm:h-12 sm:w-12"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
           <button
             type="button"
             onClick={() => goToPhoto(Math.min(activeIndex + 1, gallery.length - 1))}
             disabled={activeIndex === gallery.length - 1}
             aria-label="Next gallery photo"
-            className="absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#C9A45C] bg-[#FFF8E9]/95 text-[#6D1429] shadow-lg transition hover:bg-[#6D1429] hover:text-[#FFF8E9] disabled:cursor-not-allowed disabled:opacity-45 sm:right-5 sm:h-12 sm:w-12"
+            className="absolute right-1 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#C9A45C] bg-[#FFF8E9]/95 text-[#6D1429] shadow-lg transition hover:bg-[#6D1429] hover:text-[#FFF8E9] disabled:cursor-not-allowed disabled:opacity-45 sm:right-5 sm:h-12 sm:w-12"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-2" role="group" aria-label="Choose a gallery photo">
+        <div className="-mx-1 mt-2 flex items-center justify-center gap-[5px] sm:mx-0 sm:mt-6" role="group" aria-label="Choose a gallery photo">
           {gallery.map((photo, index) => (
             <button
               key={photo.id}
@@ -165,13 +197,18 @@ export const PhotoGallery: React.FC = () => {
               onClick={() => goToPhoto(index)}
               aria-label={`Show photo ${index + 1}`}
               aria-current={activeIndex === index ? "true" : undefined}
-              className={`h-2.5 rounded-full transition-all duration-300 ${
-                activeIndex === index ? "w-8 bg-[#6D1429]" : "w-2.5 bg-[#C9A45C]/70 hover:bg-[#8B1E2D]"
-              }`}
-            />
+              className="flex h-11 w-[13px] !min-w-[13px] shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6D1429] focus-visible:ring-offset-1"
+            >
+              <span
+                aria-hidden="true"
+                className={`block h-2 w-2 rounded-full transition-colors duration-300 ${
+                  activeIndex === index ? "bg-[#6D1429]" : "bg-[#C9A45C]/70 hover:bg-[#8B1E2D]"
+                }`}
+              />
+            </button>
           ))}
         </div>
-        <p className="mt-3 text-center font-serif-royal text-xs tracking-wider text-[#8B1E2D]" aria-live="polite">
+        <p className="mt-0 text-center font-serif-royal text-xs tracking-wider text-[#8B1E2D] sm:mt-3" aria-live="polite">
           {activeIndex + 1} / {gallery.length}
         </p>
       </div>

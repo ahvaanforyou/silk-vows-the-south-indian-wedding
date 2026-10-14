@@ -9,36 +9,6 @@ import { MapPin, Navigation, Calendar, Car, Compass, ExternalLink } from "lucide
 export const VenueSection: React.FC = () => {
   const { venue, weddingDateTime } = weddingConfig;
 
-  const handleDownloadCalendar = () => {
-    const title = `Wedding of Sravya & Karthik — Sumuhurtham`;
-    const description = `Sumuhurtham: ${weddingDateTime.muhurthamTime} (${weddingDateTime.muhurthamTelugu})\\nVenue: ${venue.name}\\nAddress: ${venue.address}`;
-    const location = `${venue.name}, ${venue.address}, ${venue.city}, ${venue.state} ${venue.pincode}`;
-
-    const icsContent = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//Sravya and Karthik Wedding//EN",
-      "CALSCALE:GREGORIAN",
-      "BEGIN:VEVENT",
-      `SUMMARY:${title}`,
-      `DESCRIPTION:${description}`,
-      `LOCATION:${location}`,
-      `DTSTART;TZID=Asia/Kolkata:20261218T103800`,
-      `DTEND;TZID=Asia/Kolkata:20261218T143000`,
-      "STATUS:CONFIRMED",
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n");
-
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-    const link = document.createElement("a");
-    link.href = window.URL.createObjectURL(blob);
-    link.setAttribute("download", "Sravya-Karthik-Wedding.ics");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const getGoogleCalendarUrl = () => {
     const text = encodeURIComponent("Wedding Ceremony: Sravya & Karthik (Sumuhurtham)");
     const details = encodeURIComponent(
@@ -165,14 +135,6 @@ export const VenueSection: React.FC = () => {
               <span>Google Cal</span>
             </a>
 
-            {/* Download .ics Button */}
-            <button
-              onClick={handleDownloadCalendar}
-              className="inline-flex items-center justify-center space-x-1.5 px-3 py-3 rounded-xl border border-[#C9A45C]/60 text-[#FFF8E9] text-xs hover:bg-[#FFF8E9]/10 transition-all duration-200 cursor-pointer"
-              title="Download iCalendar file (.ics)"
-            >
-              <span>.ICS</span>
-            </button>
           </div>
         </motion.div>
 
