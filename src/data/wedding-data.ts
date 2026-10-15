@@ -4,7 +4,7 @@ export interface CouplePerson {
   role: string;
   parents: string;
   grandparents?: string;
-  description: string;
+  description?: string;
   image: string;
   instagram?: string;
 }
@@ -12,15 +12,15 @@ export interface CouplePerson {
 export interface WeddingEvent {
   id: string;
   title: string;
-  teluguTitle: string;
+  teluguTitle?: string;
   date: string;
   time: string;
   venue: string;
-  address: string;
-  description: string;
-  dressCode: string;
+  address?: string;
+  description?: string;
+  dressCode?: string;
   isMainEvent?: boolean;
-  googleMapsUrl: string;
+  googleMapsUrl?: string;
   icon: "kalash" | "mehendi" | "mandapam" | "reception";
 }
 
@@ -40,8 +40,8 @@ export interface WeddingConfig {
   shlokas: {
     sanskritGanesha: string;
     teluguGanesha: string;
-    blessingTelugu: string;
-    blessingEnglish: string;
+    blessingTelugu?: string;
+    blessingEnglish?: string;
   };
   weddingDateTime: {
     iso: string;
@@ -55,29 +55,29 @@ export interface WeddingConfig {
   events: WeddingEvent[];
   venue: {
     name: string;
-    teluguName: string;
+    teluguName?: string;
     address: string;
     city: string;
     state: string;
     pincode: string;
-    landmarks: string;
-    googleMapsUrl: string;
-    googleMapsEmbedUrl: string;
-    parkingNotes: string;
+    landmarks?: string;
+    googleMapsUrl?: string;
+    googleMapsEmbedUrl?: string;
+    parkingNotes?: string;
     showMapEmbed: boolean;
   };
   gallery: GalleryPhoto[];
   rsvp: {
     enabled: boolean;
-    deadline: string;
+    deadline?: string;
     maxGuests: number;
-    contactPhone: string;
-    contactEmail: string;
+    contactPhone?: string;
+    contactEmail?: string;
   };
   audio: {
     enabled: boolean;
-    title: string;
-    subtitle: string;
+    title?: string;
+    subtitle?: string;
     src: string;
   };
 }
@@ -89,9 +89,6 @@ export const weddingConfig: WeddingConfig = {
       teluguName: "శ్రావ్య",
       role: "Meet the Bride",
       parents: "Smt. Madhavi & Sri Ramana Reddy",
-      grandparents: "Granddaughter of Late Smt. Lakshmi Devi & Late Sri Venkata Reddy",
-      description:
-        "A graceful classical Kuchipudi artist and lead software architect with a deep love for Telugu poetry, Carnatic melodies, and warm family gatherings.",
       image: "/images/bride.jpg",
     },
     groom: {
@@ -99,9 +96,6 @@ export const weddingConfig: WeddingConfig = {
       teluguName: "కార్తీక్",
       role: "Meet the Groom",
       parents: "Smt. Sunitha & Sri Prabhakar Varma",
-      grandparents: "Grandson of Smt. Sarada & Sri Suryanarayana Varma",
-      description:
-        "A visionary fintech creator, passionate heritage traveler, and cricket aficionado who finds endless joy in traditional celebrations and spontaneous road trips.",
       image: "/images/groom.jpg",
     },
   },

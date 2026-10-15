@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { weddingConfig } from "@/data/wedding-data";
 import { TempleArch } from "../traditional/TempleArch";
@@ -37,9 +38,11 @@ export const WeddingHero: React.FC = () => {
                 <p className="font-telugu text-lg sm:text-xl font-bold text-[#8B1E2D] tracking-wide">
                   {weddingConfig.shlokas.teluguGanesha}
                 </p>
-                <p className="font-serif-royal text-xs text-[#9A7730] tracking-widest uppercase">
-                  {weddingConfig.shlokas.blessingTelugu}
-                </p>
+                {weddingConfig.shlokas.blessingTelugu?.trim() && (
+                  <p className="font-serif-royal text-xs text-[#9A7730] tracking-widest uppercase">
+                    {weddingConfig.shlokas.blessingTelugu}
+                  </p>
+                )}
               </div>
               <KalashIcon size={32} />
             </motion.div>
@@ -58,6 +61,17 @@ export const WeddingHero: React.FC = () => {
                 We joyfully invite you to celebrate the wedding of
               </p>
             </motion.div>
+
+            <Image
+              src="/images/ganesha-emblem.png"
+              alt="Golden Ganesha emblem"
+              width={1276}
+              height={1233}
+              priority
+              unoptimized
+              draggable={false}
+              className="mb-4 h-auto w-[clamp(4.5rem,10vw,5.5rem)] shrink-0 object-contain"
+            />
 
             {/* Couple's Names */}
             <motion.div

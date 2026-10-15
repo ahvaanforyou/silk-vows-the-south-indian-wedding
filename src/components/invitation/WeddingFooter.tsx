@@ -25,9 +25,11 @@ export const WeddingFooter: React.FC = () => {
         <p className="font-telugu text-lg sm:text-xl font-bold text-[#8B1E2D] mb-1">
           {shlokas.teluguGanesha}
         </p>
-        <p className="font-serif-royal text-sm text-[#9A7730] uppercase tracking-widest font-semibold mb-3">
-          {shlokas.blessingTelugu}
-        </p>
+        {shlokas.blessingTelugu?.trim() && (
+          <p className="font-serif-royal text-sm text-[#9A7730] uppercase tracking-widest font-semibold mb-3">
+            {shlokas.blessingTelugu}
+          </p>
+        )}
 
         {/* Thank You Note */}
         <p className="font-serif-elegant italic text-xl sm:text-2xl text-[#6D1429] my-4 leading-relaxed">

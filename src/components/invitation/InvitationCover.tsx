@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { weddingConfig } from "@/data/wedding-data";
 import { ToranHeader } from "../traditional/ToranHeader";
@@ -45,15 +46,19 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
   const handleOpenClick = () => {
     if (isOpening) return;
     setIsOpening(true);
-    onStartMusic?.();
     if (prefersReducedMotion) {
       onOpen();
-      return;
+    } else {
+      // Start the open transition before attempting audio so a playback failure
+      // can never leave the invitation stuck in its opening state.
+      window.setTimeout(() => onOpen(), 700);
     }
-    // Allow smooth animation to begin, then inform parent
-    setTimeout(() => {
-      onOpen();
-    }, 700);
+
+    try {
+      onStartMusic?.();
+    } catch {
+      // Music is optional; the invitation should still open if audio fails.
+    }
   };
 
   return (
@@ -109,6 +114,17 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
 
             {/* Central Invitation Card Body */}
             <div className="relative z-10 min-h-0 flex-[1_1_auto] overflow-y-auto overscroll-contain px-5 sm:px-8 py-2 sm:py-3 flex flex-col items-center justify-center text-center">
+              <Image
+                src="/images/ganesha-emblem.png"
+                alt="Golden Ganesha emblem"
+                width={1276}
+                height={1233}
+                priority
+                unoptimized
+                draggable={false}
+                className="mb-4 h-auto w-[clamp(3rem,7vw,4rem)] shrink-0 object-contain"
+              />
+
               {/* Sacred Sanskrit / Telugu Ganesha Invocation */}
               <div className="mb-2">
                 <p className="font-serif-royal text-base sm:text-lg tracking-widest text-[#E3C98A] font-semibold drop-shadow-sm">

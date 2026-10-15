@@ -228,6 +228,7 @@ export const EventsTimeline: React.FC = () => {
         <div className="relative">
           {events.map((event, index) => {
             const isEven = index % 2 === 0;
+            const eventMapUrl = event.googleMapsUrl?.trim();
 
             return (
               <div
@@ -271,10 +272,12 @@ export const EventsTimeline: React.FC = () => {
                   transition={{ duration: 0.6, delay: 0.1 }}
                 className={`min-w-0 w-full max-w-[22rem] py-4 text-center ${isEven ? "col-start-3 justify-self-start" : "col-start-1 justify-self-end"}`}
                 >
-                  <span className="font-telugu block text-[11px] font-semibold leading-snug text-[#8B1E2D] sm:text-xs">
-                    {event.teluguTitle}
-                  </span>
-                  <h3 className="font-serif-royal mt-1 text-lg font-bold leading-tight text-[#6D1429] sm:text-xl md:text-2xl">
+                  {event.teluguTitle?.trim() && (
+                    <span className="font-telugu block text-[11px] font-semibold leading-snug text-[#8B1E2D] sm:text-xs">
+                      {event.teluguTitle}
+                    </span>
+                  )}
+                  <h3 className={`font-serif-royal text-lg font-bold leading-tight text-[#6D1429] sm:text-xl md:text-2xl ${event.teluguTitle?.trim() ? "mt-1" : ""}`}>
                     {event.title}
                   </h3>
 
@@ -296,9 +299,10 @@ export const EventsTimeline: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                  {eventMapUrl && (
+                    <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                     <a
-                      href={event.googleMapsUrl}
+                      href={eventMapUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-1 rounded-full border border-[#C9A45C] px-3 py-1.5 font-serif-royal text-[10px] font-semibold uppercase tracking-wider text-[#8B1E2D] transition-colors hover:bg-[#6D1429] hover:text-[#FFF8E9] sm:text-[11px]"
@@ -307,7 +311,8 @@ export const EventsTimeline: React.FC = () => {
                       <span>View Map</span>
                       <ExternalLink className="h-2.5 w-2.5" />
                     </a>
-                  </div>
+                    </div>
+                  )}
                 </motion.div>
               </div>
             );
@@ -333,6 +338,7 @@ export const EventsTimeline: React.FC = () => {
         </div>
         {events.map((event, index) => {
           const isEven = index % 2 === 0;
+          const eventMapUrl = event.googleMapsUrl?.trim();
           return (
             <React.Fragment key={event.id}>
               <article className={`relative z-20 grid items-center gap-2 py-2 ${isEven ? "grid-cols-[minmax(0,1fr)_4rem] sm:grid-cols-[minmax(0,1fr)_5rem]" : "grid-cols-[4rem_minmax(0,1fr)] sm:grid-cols-[5rem_minmax(0,1fr)]"}`}>
@@ -343,8 +349,8 @@ export const EventsTimeline: React.FC = () => {
                   transition={{ duration: 0.45 }}
                   className={`min-w-0 py-1 ${isEven ? "col-start-1 row-start-1 text-left" : "col-start-2 row-start-1 text-right"}`}
                 >
-                  <span className="font-telugu block text-[11px] font-semibold leading-snug text-[#8B1E2D]">{event.teluguTitle}</span>
-                  <h3 className="font-serif-royal mt-1 text-[17px] font-bold leading-tight text-[#6D1429]">{event.title}</h3>
+                  {event.teluguTitle?.trim() && <span className="font-telugu block text-[11px] font-semibold leading-snug text-[#8B1E2D]">{event.teluguTitle}</span>}
+                  <h3 className={`font-serif-royal text-[17px] font-bold leading-tight text-[#6D1429] ${event.teluguTitle?.trim() ? "mt-1" : ""}`}>{event.title}</h3>
                   <div className="font-serif-elegant mt-2 space-y-1 text-[13px] leading-snug text-[#8B1E2D]">
                     <p className={`flex items-start gap-1.5 ${isEven ? "justify-start" : "justify-end"}`}><Calendar className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#9A7730]" /><span>{event.date}</span></p>
                     <p className={`flex items-start gap-1.5 ${isEven ? "justify-start" : "justify-end"}`}><Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#9A7730]" /><span>{event.time}</span></p>
@@ -352,11 +358,11 @@ export const EventsTimeline: React.FC = () => {
                   <div className="mt-2 text-[11px] leading-snug text-[#736044]">
                     <p className={`flex items-start gap-1.5 font-semibold text-[#6D1429] ${isEven ? "justify-start" : "justify-end"}`}><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#9A7730]" /><span>{event.venue}</span></p>
                   </div>
-                  <div className={`mt-3 flex flex-wrap gap-2 ${isEven ? "justify-start" : "justify-end"}`}>
-                    <a href={event.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center justify-center gap-1 rounded-full border border-[#C9A45C] px-3 py-1.5 font-serif-royal text-[10px] font-semibold uppercase tracking-wide text-[#8B1E2D]">
+                  {eventMapUrl && <div className={`mt-3 flex flex-wrap gap-2 ${isEven ? "justify-start" : "justify-end"}`}>
+                    <a href={eventMapUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center justify-center gap-1 rounded-full border border-[#C9A45C] px-3 py-1.5 font-serif-royal text-[10px] font-semibold uppercase tracking-wide text-[#8B1E2D]">
                       <MapPin className="h-3 w-3" /><span>View Map</span><ExternalLink className="h-2.5 w-2.5" />
                     </a>
-                  </div>
+                  </div>}
                 </motion.div>
                 <div className={`flex min-w-0 flex-col items-center gap-2 ${isEven ? "col-start-2 row-start-1" : "col-start-1 row-start-1"}`}>
                   <span data-event-marker={index} aria-hidden="true" className={`relative z-30 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#C9A45C] bg-[#FFF8E9] shadow-sm ${event.isMainEvent ? "text-[#FFF8E9]" : "text-[#8B1E2D]"}`}>

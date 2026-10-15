@@ -8,6 +8,10 @@ import { MapPin, Navigation, Calendar, Car, Compass, ExternalLink } from "lucide
 
 export const VenueSection: React.FC = () => {
   const { venue, weddingDateTime } = weddingConfig;
+  const mapsUrl = venue.googleMapsUrl?.trim();
+  const mapEmbedUrl = venue.googleMapsEmbedUrl?.trim();
+  const hasMap = Boolean(mapsUrl || mapEmbedUrl);
+  const showMapEmbed = venue.showMapEmbed && Boolean(mapEmbedUrl);
 
   const getGoogleCalendarUrl = () => {
     const text = encodeURIComponent("Wedding Ceremony: Sravya & Karthik (Sumuhurtham)");
@@ -45,7 +49,7 @@ export const VenueSection: React.FC = () => {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="lg:col-span-6 relative bg-gradient-to-b from-[#6D1429] via-[#5A0F21] to-[#420A17] text-[#FFF8E9] rounded-2xl p-7 sm:p-9 border-2 border-[#C9A45C] shadow-2xl flex flex-col justify-between overflow-hidden"
+          className={`${hasMap ? "lg:col-span-6" : "lg:col-span-12"} relative bg-gradient-to-b from-[#6D1429] via-[#5A0F21] to-[#420A17] text-[#FFF8E9] rounded-2xl p-7 sm:p-9 border-2 border-[#C9A45C] shadow-2xl flex flex-col justify-between overflow-hidden`}
         >
           <CornerOrnament position="top-left" size={44} color="#E3C98A" />
           <CornerOrnament position="top-right" size={44} color="#E3C98A" />
@@ -63,9 +67,11 @@ export const VenueSection: React.FC = () => {
             <h3 className="font-serif-royal text-2xl sm:text-3xl font-bold text-[#FFF8E9] tracking-wide">
               {venue.name}
             </h3>
-            <span className="font-telugu text-base text-[#E3C98A] font-semibold block mt-1">
-              {venue.teluguName}
-            </span>
+            {venue.teluguName?.trim() && (
+              <span className="font-telugu text-base text-[#E3C98A] font-semibold block mt-1">
+                {venue.teluguName}
+              </span>
+            )}
 
             {/* Address */}
             <div className="my-5 p-4 rounded-xl bg-[#2B050E]/60 border border-[#C9A45C]/30 text-sm space-y-2">
@@ -91,7 +97,7 @@ export const VenueSection: React.FC = () => {
                   <strong>Sumuhurtham:</strong> {weddingDateTime.muhurthamTime} ({weddingDateTime.muhurthamTelugu})
                 </span>
               </div>
-              {venue.landmarks && (
+              {venue.landmarks?.trim() && (
                 <div className="flex items-start space-x-2.5">
                   <Compass className="w-4 h-4 text-[#E3C98A] flex-shrink-0 mt-0.5" />
                   <span>
@@ -99,7 +105,7 @@ export const VenueSection: React.FC = () => {
                   </span>
                 </div>
               )}
-              {venue.parkingNotes && (
+              {venue.parkingNotes?.trim() && (
                 <div className="flex items-start space-x-2.5">
                   <Car className="w-4 h-4 text-[#E3C98A] flex-shrink-0 mt-0.5" />
                   <span>
@@ -113,8 +119,8 @@ export const VenueSection: React.FC = () => {
           {/* Interactive Direction & Calendar Buttons */}
           <div className="relative z-10 pt-6 mt-6 border-t border-[#C9A45C]/40 flex flex-wrap gap-3">
             {/* Get Directions Button */}
-            <a
-              href={venue.googleMapsUrl}
+            {mapsUrl && <a
+              href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-[#C9A45C] text-[#3B0713] font-serif-royal font-bold text-xs sm:text-sm tracking-wide uppercase hover:bg-[#E3C98A] transition-all duration-200 shadow-md cursor-pointer"
@@ -122,7 +128,7 @@ export const VenueSection: React.FC = () => {
               <MapPin className="w-4 h-4" />
               <span>Get Directions</span>
               <ExternalLink className="w-3.5 h-3.5 ml-1" />
-            </a>
+            </a>}
 
             {/* Google Calendar Link */}
             <a
@@ -139,6 +145,7 @@ export const VenueSection: React.FC = () => {
         </motion.div>
 
         {/* Embedded Interactive Map Card */}
+        {hasMap && (
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -146,9 +153,9 @@ export const VenueSection: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="lg:col-span-6 relative rounded-2xl overflow-hidden border-2 border-[#C9A45C] shadow-2xl bg-[#F5EBD8] min-h-[360px] flex flex-col"
         >
-          {venue.showMapEmbed && venue.googleMapsEmbedUrl ? (
+          {showMapEmbed ? (
             <iframe
-              src={venue.googleMapsEmbedUrl}
+              src={mapEmbedUrl}
               width="100%"
               height="100%"
               style={{ border: 0, minHeight: "360px", flexGrow: 1 }}
@@ -167,17 +174,18 @@ export const VenueSection: React.FC = () => {
               <p className="text-sm text-[#4A0B1A]/80 mt-1 max-w-sm">
                 {venue.address}
               </p>
-              <a
-                href={venue.googleMapsUrl}
+              {mapsUrl && <a
+                href={mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-4 px-5 py-2.5 rounded-full bg-[#8B1E2D] text-[#FFF8E9] text-xs font-serif-royal font-semibold uppercase tracking-wider hover:bg-[#6D1429] transition-colors"
               >
                 Open in Google Maps
-              </a>
+              </a>}
             </div>
           )}
         </motion.div>
+        )}
       </div>
     </section>
   );

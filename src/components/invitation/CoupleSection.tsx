@@ -90,7 +90,7 @@ export const CoupleSection: React.FC = () => {
             <p className="font-serif-royal text-sm sm:text-base font-semibold text-[#4A0B1A] mt-0.5">
               {bride.parents}
             </p>
-            {bride.grandparents && (
+            {bride.grandparents?.trim() && (
               <p className="text-xs text-[#6D1429]/80 mt-1 italic">
                 {bride.grandparents}
               </p>
@@ -98,9 +98,11 @@ export const CoupleSection: React.FC = () => {
           </div>
 
           {/* Short Bio / Description */}
-          <p className="text-sm text-[#4A0B1A]/85 leading-relaxed font-sans mt-2">
-            {bride.description}
-          </p>
+          {bride.description?.trim() && (
+            <p className="text-sm text-[#4A0B1A]/85 leading-relaxed font-sans mt-2">
+              {bride.description}
+            </p>
+          )}
         </motion.div>
 
         {/* Groom Card */}
@@ -153,7 +155,7 @@ export const CoupleSection: React.FC = () => {
             <p className="font-serif-royal text-sm sm:text-base font-semibold text-[#4A0B1A] mt-0.5">
               {groom.parents}
             </p>
-            {groom.grandparents && (
+            {groom.grandparents?.trim() && (
               <p className="text-xs text-[#6D1429]/80 mt-1 italic">
                 {groom.grandparents}
               </p>
@@ -161,9 +163,11 @@ export const CoupleSection: React.FC = () => {
           </div>
 
           {/* Short Bio / Description */}
-          <p className="text-sm text-[#4A0B1A]/85 leading-relaxed font-sans mt-2">
-            {groom.description}
-          </p>
+          {groom.description?.trim() && (
+            <p className="text-sm text-[#4A0B1A]/85 leading-relaxed font-sans mt-2">
+              {groom.description}
+            </p>
+          )}
         </motion.div>
       </div>
     </section>

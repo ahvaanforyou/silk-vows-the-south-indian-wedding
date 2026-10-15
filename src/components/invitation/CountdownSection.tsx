@@ -17,14 +17,32 @@ interface TimeLeft {
 const subscribe = () => () => {};
 const getSnapshot = () => true;
 const getServerSnapshot = () => false;
+const scratchRevealThreshold = 0.3;
+const scratchCheckInterval = 120;
+const burstParticles = Array.from({ length: 22 }, (_, index) => {
+  const angle = (index / 22) * Math.PI * 2 - Math.PI / 2;
+  const distance = 72 + ((index * 17) % 48);
+  return {
+    x: Math.cos(angle) * distance,
+    y: Math.sin(angle) * distance,
+    size: index % 5 === 0 ? 5 : 3,
+    isConfetti: index % 7 === 0,
+    rotation: (index * 47) % 180,
+  };
+});
 
 export const CountdownSection: React.FC = () => {
   const hasMounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const scratchCanvasRef = useRef<HTMLCanvasElement>(null);
   const scratchPointRef = useRef<{ x: number; y: number } | null>(null);
   const scratchPointerRef = useRef<number | null>(null);
+  const scratchProgressTimeoutRef = useRef<number | null>(null);
+  const revealTriggeredRef = useRef(false);
+  const hasDrawnCoverRef = useRef(false);
   const [scratchRevealed, setScratchRevealed] = useState(false);
   const [scratchLayerRemoved, setScratchLayerRemoved] = useState(false);
+  const [showScratchBlast, setShowScratchBlast] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
@@ -71,6 +89,14 @@ export const CountdownSection: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener("change", updatePreference);
+    return () => mediaQuery.removeEventListener("change", updatePreference);
+  }, []);
+
+  useEffect(() => {
     if (!hasMounted || scratchLayerRemoved || scratchRevealed) return;
 
     const canvas = scratchCanvasRef.current;
@@ -85,6 +111,12 @@ export const CountdownSection: React.FC = () => {
       const bounds = area.getBoundingClientRect();
       if (bounds.width === 0 || bounds.height === 0) return;
       const scale = Math.min(window.devicePixelRatio || 1, 2);
+      const previousCover = hasDrawnCoverRef.current ? document.createElement("canvas") : null;
+      if (previousCover) {
+        previousCover.width = canvas.width;
+        previousCover.height = canvas.height;
+        previousCover.getContext("2d")?.drawImage(canvas, 0, 0);
+      }
       canvas.width = Math.round(bounds.width * scale);
       canvas.height = Math.round(bounds.height * scale);
       canvas.style.width = `${bounds.width}px`;
@@ -128,6 +160,14 @@ export const CountdownSection: React.FC = () => {
       context.font = "12px Georgia, serif";
       context.fillStyle = "rgba(74, 11, 26, 0.82)";
       context.fillText("Use your finger or mouse", bounds.width / 2, bounds.height / 2 + 24);
+      if (previousCover) {
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.globalCompositeOperation = "destination-in";
+        context.drawImage(previousCover, 0, 0, previousCover.width, previousCover.height, 0, 0, canvas.width, canvas.height);
+        context.globalCompositeOperation = "source-over";
+        context.setTransform(scale, 0, 0, scale, 0, 0);
+      }
+      hasDrawnCoverRef.current = true;
     };
 
     drawCover();
@@ -138,9 +178,21 @@ export const CountdownSection: React.FC = () => {
 
   useEffect(() => {
     if (!scratchRevealed) return;
-    const timeout = window.setTimeout(() => setScratchLayerRemoved(true), 450);
+    const timeout = window.setTimeout(() => setScratchLayerRemoved(true), prefersReducedMotion ? 220 : 980);
     return () => window.clearTimeout(timeout);
-  }, [scratchRevealed]);
+  }, [scratchRevealed, prefersReducedMotion]);
+
+  useEffect(() => () => {
+    if (scratchProgressTimeoutRef.current !== null) {
+      window.clearTimeout(scratchProgressTimeoutRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!showScratchBlast) return;
+    const timeout = window.setTimeout(() => setShowScratchBlast(false), prefersReducedMotion ? 220 : 1050);
+    return () => window.clearTimeout(timeout);
+  }, [showScratchBlast, prefersReducedMotion]);
 
   const scratchAt = (event: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = scratchCanvasRef.current;
@@ -165,18 +217,41 @@ export const CountdownSection: React.FC = () => {
     return point;
   };
 
+  const revealCountdown = () => {
+    if (revealTriggeredRef.current) return;
+    revealTriggeredRef.current = true;
+    setShowScratchBlast(true);
+    setScratchRevealed(true);
+  };
+
   const checkScratchProgress = () => {
     const canvas = scratchCanvasRef.current;
     const context = canvas?.getContext("2d");
-    if (!canvas || !context || canvas.width === 0 || canvas.height === 0) return;
+    if (!canvas || !context || canvas.width === 0 || canvas.height === 0 || revealTriggeredRef.current) return;
     const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
-    let transparent = 0;
-    let sampled = 0;
-    for (let i = 3; i < pixels.length; i += 64) {
-      sampled += 1;
-      if (pixels[i] < 24) transparent += 1;
+    let clearedArea = 0;
+    for (let alphaIndex = 3; alphaIndex < pixels.length; alphaIndex += 4) {
+      clearedArea += 255 - pixels[alphaIndex];
     }
-    if (sampled > 0 && transparent / sampled >= 0.55) setScratchRevealed(true);
+    const totalArea = canvas.width * canvas.height * 255;
+    if (totalArea > 0 && clearedArea / totalArea >= scratchRevealThreshold) revealCountdown();
+  };
+
+  const scheduleScratchProgressCheck = (force = false) => {
+    if (revealTriggeredRef.current) return;
+    if (scratchProgressTimeoutRef.current !== null) {
+      if (!force) return;
+      window.clearTimeout(scratchProgressTimeoutRef.current);
+      scratchProgressTimeoutRef.current = null;
+    }
+    if (force) {
+      checkScratchProgress();
+      return;
+    }
+    scratchProgressTimeoutRef.current = window.setTimeout(() => {
+      scratchProgressTimeoutRef.current = null;
+      checkScratchProgress();
+    }, scratchCheckInterval);
   };
 
   const timeUnits = [
@@ -267,11 +342,16 @@ export const CountdownSection: React.FC = () => {
           <div className="sr-only" aria-live="polite">
             Scratch the decorative surface with a finger or mouse to reveal the wedding countdown. The countdown remains available to assistive technology.
           </div>
+          <noscript>
+            <p className="mt-4 font-serif-elegant text-[#FFF8E9]">
+              Wedding ceremony: {weddingConfig.weddingDateTime.dateFormatted} at {weddingConfig.weddingDateTime.muhurthamTime}.
+            </p>
+          </noscript>
           {hasMounted && !scratchLayerRemoved && (
             <canvas
               ref={scratchCanvasRef}
               aria-hidden="true"
-              className={`absolute inset-0 z-20 h-full w-full touch-none cursor-crosshair rounded-2xl transition-opacity duration-500 motion-reduce:transition-none ${
+              className={`absolute inset-0 z-20 h-full w-full touch-none cursor-crosshair rounded-2xl transition-opacity duration-[900ms] motion-reduce:duration-200 ${
                 scratchRevealed ? "pointer-events-none opacity-0" : "opacity-100"
               }`}
               onPointerDown={(event) => {
@@ -281,34 +361,71 @@ export const CountdownSection: React.FC = () => {
                 scratchPointerRef.current = event.pointerId;
                 scratchPointRef.current = null;
                 scratchAt(event);
+                scheduleScratchProgressCheck();
               }}
               onPointerMove={(event) => {
                 if (scratchPointerRef.current !== event.pointerId) return;
                 scratchAt(event);
+                scheduleScratchProgressCheck();
               }}
               onPointerUp={(event) => {
                 if (scratchPointerRef.current !== event.pointerId) return;
                 scratchAt(event);
                 scratchPointerRef.current = null;
                 scratchPointRef.current = null;
-                checkScratchProgress();
+                scheduleScratchProgressCheck(true);
               }}
               onPointerCancel={() => {
                 scratchPointerRef.current = null;
                 scratchPointRef.current = null;
-                checkScratchProgress();
+                scheduleScratchProgressCheck(true);
               }}
             />
+          )}
+          {hasMounted && showScratchBlast && (
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-30 overflow-hidden rounded-2xl">
+              {prefersReducedMotion ? (
+                <motion.div
+                  initial={{ opacity: 0.24 }}
+                  animate={{ opacity: 0 }}
+                  transition={{ duration: 0.22 }}
+                  className="absolute inset-0 bg-[#E3C98A]"
+                />
+              ) : (
+                <>
+                  <motion.div
+                    initial={{ scale: 0.08, opacity: 0.72 }}
+                    animate={{ scale: 3.2, opacity: 0 }}
+                    transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#F5D98B] shadow-[0_0_34px_rgba(227,201,138,0.65)]"
+                  />
+                  <motion.div
+                    initial={{ opacity: 0.34 }}
+                    animate={{ opacity: 0 }}
+                    transition={{ duration: 0.45 }}
+                    className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,236,180,0.48),rgba(255,236,180,0)_58%)]"
+                  />
+                  {burstParticles.map((particle, index) => (
+                    <motion.span
+                      key={index}
+                      initial={{ x: 0, y: 0, opacity: 0, scale: 0.35, rotate: 0 }}
+                      animate={{ x: particle.x, y: particle.y, opacity: [0, 1, 0], scale: [0.35, 1, 0.25], rotate: particle.rotation }}
+                      transition={{ duration: 0.9, delay: (index % 4) * 0.015, ease: "easeOut" }}
+                      className={`absolute left-1/2 top-1/2 ${particle.isConfetti ? "rounded-[1px]" : "rounded-full"} ${index % 3 === 0 ? "bg-[#FFF1BD]" : "bg-[#D8B55B]"} shadow-[0_0_7px_rgba(245,217,139,0.8)]`}
+                      style={{ width: particle.size, height: particle.isConfetti ? particle.size * 1.7 : particle.size }}
+                    />
+                  ))}
+                </>
+              )}
+            </div>
           )}
         </div>
 
         {/* Muhurtham Time Note */}
         <div className="mt-10 inline-flex items-center space-x-2 px-5 py-2 rounded-full bg-[#FFF8E9]/10 border border-[#C9A45C]/50 text-xs sm:text-sm text-[#E3C98A]">
-          <Sparkles className="w-4 h-4 text-[#C9A45C]" />
           <span className="font-serif-royal font-medium">
             Sumuhurtham: {weddingConfig.weddingDateTime.muhurthamTime} ({weddingConfig.weddingDateTime.timezone})
           </span>
-          <Sparkles className="w-4 h-4 text-[#C9A45C]" />
         </div>
       </div>
     </section>

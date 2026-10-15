@@ -70,12 +70,12 @@ export const PhotoGallery: React.FC = () => {
   const handleCloseLightbox = () => setLightboxIndex(null);
 
   const handleNextPhoto = useCallback(() => {
-    if (lightboxIndex === null) return;
+    if (lightboxIndex === null || gallery.length === 0) return;
     setLightboxIndex((lightboxIndex + 1) % gallery.length);
   }, [lightboxIndex, gallery.length]);
 
   const handlePrevPhoto = useCallback(() => {
-    if (lightboxIndex === null) return;
+    if (lightboxIndex === null || gallery.length === 0) return;
     setLightboxIndex((lightboxIndex - 1 + gallery.length) % gallery.length);
   }, [lightboxIndex, gallery.length]);
 
@@ -107,7 +107,7 @@ export const PhotoGallery: React.FC = () => {
       id="gallery"
       className="relative overflow-hidden bg-[#F5EBD8] px-4 pt-24 pb-12 text-[#4A0B1A] sm:px-6 sm:py-24"
     >
-      <div className="mx-auto mb-12 max-w-4xl text-center">
+      <div className={`mx-auto max-w-4xl text-center ${gallery.length > 0 ? "mb-12" : ""}`}>
         <span className="font-telugu mb-1 block text-lg font-bold text-[#8B1E2D]">
           మధుర క్షణాలు
         </span>
@@ -120,7 +120,7 @@ export const PhotoGallery: React.FC = () => {
         <FloralDivider theme="maroon" />
       </div>
 
-      <div
+      {gallery.length > 0 && <div
         className="mx-auto max-w-6xl"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -211,10 +211,10 @@ export const PhotoGallery: React.FC = () => {
         <p className="mt-0 text-center font-serif-royal text-xs tracking-wider text-[#8B1E2D] sm:mt-3" aria-live="polite">
           {activeIndex + 1} / {gallery.length}
         </p>
-      </div>
+      </div>}
 
       <AnimatePresence>
-        {lightboxIndex !== null && (
+        {gallery.length > 0 && lightboxIndex !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

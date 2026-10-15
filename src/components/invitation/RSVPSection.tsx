@@ -1,145 +1,107 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, Heart, Send, Users } from "lucide-react";
 import { weddingConfig } from "@/data/wedding-data";
-import { FloralDivider, CornerOrnament } from "../traditional/OrnamentalBorders";
-import { Heart, Sparkles, Send, Users } from "lucide-react";
-import confetti from "canvas-confetti";
+import { CornerOrnament, FloralDivider } from "../traditional/OrnamentalBorders";
 
 export const RSVPSection: React.FC = () => {
   const { rsvp, events } = weddingConfig;
-
+  const maxGuestCount = Math.max(1, Math.floor(rsvp.maxGuests));
   const [fullName, setFullName] = useState("");
   const [attendance, setAttendance] = useState<"attending" | "declining">("attending");
-  const [guestCount, setGuestCount] = useState<number>(2);
-  const [selectedEvents, setSelectedEvents] = useState<string[]>(() =>
-    events.map((e) => e.id)
-  );
+  const [guestCount, setGuestCount] = useState(() => Math.min(2, maxGuestCount));
+  const [selectedEvents, setSelectedEvents] = useState<string[]>(() => events.map((event) => event.id));
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const isSubmittingRef = useRef(false);
 
-  // If RSVP is disabled in configuration, do not render anything
   if (!rsvp.enabled) return null;
 
   const handleEventToggle = (eventId: string) => {
-    setSelectedEvents((prev) =>
-      prev.includes(eventId) ? prev.filter((id) => id !== eventId) : [...prev, eventId]
+    setSelectedEvents((current) =>
+      current.includes(eventId)
+        ? current.filter((id) => id !== eventId)
+        : [...current, eventId]
     );
   };
 
-  const triggerFlowerShower = () => {
-    // Traditional marigold & rose petal confetti explosion
-    const count = 200;
-    const defaults = {
-      origin: { y: 0.7 },
-      colors: ["#D97706", "#F59E0B", "#8B1E2D", "#C9A45C", "#FFF8E9"],
-    };
-
-    function fire(particleRatio: number, opts: confetti.Options) {
-      confetti({
-        ...defaults,
-        ...opts,
-        particleCount: Math.floor(count * particleRatio),
-      });
-    }
-
-    fire(0.25, {
-      spread: 26,
-      startVelocity: 55,
-    });
-    fire(0.2, {
-      spread: 60,
-    });
-    fire(0.35, {
-      spread: 100,
-      decay: 0.91,
-      scalar: 0.8,
-    });
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 25,
-      decay: 0.92,
-      scalar: 1.2,
-    });
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 45,
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSubmittingRef.current) return;
     setErrorMsg("");
 
-    if (!fullName.trim()) {
+    const name = fullName.trim();
+    if (!name) {
       setErrorMsg("Please enter your name.");
       return;
     }
-
-    if (attendance === "attending" && selectedEvents.length === 0) {
-      setErrorMsg("Please select at least one ceremony you will be attending.");
+    if (attendance === "attending" && events.length > 0 && selectedEvents.length === 0) {
+      setErrorMsg("Please select at least one ceremony you will attend.");
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
-
-    // Save to local storage to prevent duplicate submissions
     try {
-      const submission = {
-        name: fullName,
+      const savedValue = JSON.parse(localStorage.getItem("wedding_rsvps") || "[]");
+      const existing = Array.isArray(savedValue) ? savedValue : [];
+      existing.push({
+        name,
         attendance,
-        guestCount: attendance === "attending" ? guestCount : 0,
-        events: selectedEvents,
-        message,
+        guestCount: attendance === "attending" ? Math.min(guestCount, maxGuestCount) : 0,
+        events: attendance === "attending" ? selectedEvents : [],
+        message: message.trim(),
         timestamp: new Date().toISOString(),
-      };
-      const existing = JSON.parse(localStorage.getItem("wedding_rsvps") || "[]");
-      existing.push(submission);
+      });
       localStorage.setItem("wedding_rsvps", JSON.stringify(existing));
-    } catch (err) {
-      console.warn("Local storage not available:", err);
-    }
-
-    setTimeout(() => {
+      window.setTimeout(() => {
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
+        setIsSubmitted(true);
+      }, 450);
+    } catch {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
-      setIsSubmitted(true);
-      triggerFlowerShower();
-    }, 600);
+      setErrorMsg("Your response could not be saved on this device. Please try again.");
+    }
   };
 
   return (
     <section
       id="rsvp"
-      className="relative py-24 px-4 sm:px-6 bg-[#F5EBD8] text-[#4A0B1A] overflow-hidden"
+      className="relative overflow-hidden bg-[#F5EBD8] px-4 py-20 text-[#4A0B1A] sm:px-6 sm:py-24"
     >
-      {/* Section Header */}
-      <div className="max-w-4xl mx-auto text-center mb-14">
-        <span className="font-telugu text-lg text-[#8B1E2D] font-bold block mb-1">
+      <div className="pointer-events-none absolute inset-0 bg-kolam-pattern opacity-[0.035]" aria-hidden="true" />
+
+      <div className="relative z-10 mx-auto mb-12 max-w-4xl text-center sm:mb-14">
+        <span className="font-telugu mb-1 block text-lg font-bold text-[#8B1E2D]">
           మీ రాక మాకు ఆనందం
         </span>
-        <h2 className="font-serif-royal text-3xl sm:text-4xl md:text-5xl font-bold text-[#6D1429] tracking-wide">
+        <h2 className="font-serif-royal text-3xl font-bold tracking-wide text-[#6D1429] sm:text-4xl md:text-5xl">
           We Would Love to Celebrate With You
         </h2>
-        <p className="font-serif-elegant italic text-lg sm:text-xl text-[#8B1E2D] mt-2 max-w-xl mx-auto">
+        <p className="font-serif-elegant mx-auto mt-2 max-w-xl text-lg italic text-[#8B1E2D] sm:text-xl">
           Please let us know if you will be joining us for our special day.
         </p>
         <FloralDivider theme="maroon" />
-        <p className="text-xs font-serif-royal uppercase tracking-widest text-[#9A7730] mt-1 font-semibold">
-          Kindly RSVP by {rsvp.deadline}
-        </p>
+        {rsvp.deadline?.trim() && (
+          <p className="mt-1 font-serif-royal text-xs font-semibold uppercase tracking-widest text-[#9A7730]">
+            Kindly RSVP by {rsvp.deadline}
+          </p>
+        )}
       </div>
 
-      {/* RSVP Form Card */}
-      <div className="max-w-2xl mx-auto relative">
+      <div className="relative z-10 mx-auto max-w-3xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="relative rounded-2xl p-6 sm:p-10 bg-[#FFF8E9] border-2 border-[#C9A45C] shadow-2xl overflow-hidden"
+          className="relative overflow-hidden rounded-2xl border-2 border-[#C9A45C] bg-[#FFF8E9] p-5 shadow-2xl sm:p-8 md:p-10"
         >
           <CornerOrnament position="top-left" size={40} color="#8B1E2D" />
           <CornerOrnament position="top-right" size={40} color="#8B1E2D" />
@@ -148,195 +110,200 @@ export const RSVPSection: React.FC = () => {
 
           <AnimatePresence mode="wait">
             {isSubmitted ? (
-              /* Success Confirmation Screen */
               <motion.div
                 key="success"
-                initial={{ scale: 0.9, opacity: 0 }}
+                initial={{ scale: 0.96, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="py-10 text-center flex flex-col items-center"
+                className="flex flex-col items-center py-10 text-center"
+                role="status"
               >
-                <div className="w-16 h-16 rounded-full bg-[#8B1E2D]/10 border-2 border-[#8B1E2D] flex items-center justify-center text-[#8B1E2D] mb-4">
-                  <Heart className="w-8 h-8 fill-[#8B1E2D] animate-bounce" />
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#8B1E2D] bg-[#8B1E2D]/10 text-[#8B1E2D]">
+                  <Heart className="h-8 w-8 fill-[#8B1E2D]" aria-hidden="true" />
                 </div>
-                <h3 className="font-serif-royal text-2xl sm:text-3xl font-bold text-[#6D1429]">
+                <h3 className="font-serif-royal text-2xl font-bold text-[#6D1429] sm:text-3xl">
                   Dhanyavadhamulu!
                 </h3>
-                <span className="font-telugu text-lg text-[#8B1E2D] font-bold block mt-1">
+                <span className="font-telugu mt-1 block text-lg font-bold text-[#8B1E2D]">
                   మీ శుభాకాంక్షలకు ధన్యవాదాలు
                 </span>
-                <p className="font-serif-elegant italic text-lg text-[#4A0B1A] mt-3 max-w-md">
-                  Thank you, <strong>{fullName}</strong>. We have joyfully received your RSVP and cannot wait to celebrate with you!
+                <p className="font-serif-elegant mt-3 max-w-md text-lg italic text-[#4A0B1A]">
+                  Thank you, <strong>{fullName.trim()}</strong>. We have joyfully received your RSVP and look forward to celebrating with you.
                 </p>
                 <button
+                  type="button"
                   onClick={() => setIsSubmitted(false)}
-                  className="mt-6 px-6 py-2 rounded-full border border-[#C9A45C] text-xs font-serif-royal font-semibold text-[#8B1E2D] hover:bg-[#F5EBD8] transition-colors cursor-pointer"
+                  className="mt-6 min-h-11 rounded-full border border-[#C9A45C] px-6 py-2 font-serif-royal text-xs font-semibold text-[#8B1E2D] transition-colors hover:bg-[#F5EBD8] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#C9A45C]/40"
                 >
                   Edit Response
                 </button>
               </motion.div>
             ) : (
-              /* RSVP Input Form */
-              <form key="form" onSubmit={handleSubmit} className="space-y-6">
+              <form key="form" onSubmit={handleSubmit} className="relative space-y-7" aria-busy={isSubmitting}>
                 {errorMsg && (
-                  <div className="p-3 rounded-lg bg-red-100 border border-red-300 text-red-800 text-xs font-medium">
+                  <div id="rsvp-error" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">
                     {errorMsg}
                   </div>
                 )}
 
-                {/* Guest Full Name */}
                 <div>
-                  <label
-                    htmlFor="fullName"
-                    className="block font-serif-royal text-xs font-bold uppercase tracking-wider text-[#6D1429] mb-1.5"
-                  >
-                    Guest Name(s) <span className="text-red-600">*</span>
+                  <label htmlFor="fullName" className="mb-2 block font-serif-royal text-lg font-bold uppercase tracking-wide text-[#6D1429]">
+                    Guest Name(s) <span className="text-red-700" aria-hidden="true">*</span>
+                    <span className="sr-only"> required</span>
                   </label>
                   <input
                     id="fullName"
+                    name="fullName"
                     type="text"
+                    autoComplete="name"
                     required
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Smt. Lakshmi & Sri Venkatesh"
-                    className="w-full px-4 py-3 rounded-xl border border-[#C9A45C]/60 bg-[#FFFDF8] text-[#4A0B1A] focus:outline-none focus:ring-2 focus:ring-[#8B1E2D] text-sm"
+                    onChange={(event) => setFullName(event.target.value)}
+                    placeholder="e.g., Smt. Lakshmi & Sri Venkatesh"
+                    aria-invalid={Boolean(errorMsg && !fullName.trim())}
+                    aria-describedby={errorMsg && !fullName.trim() ? "rsvp-error" : undefined}
+                    className="min-h-14 w-full rounded-2xl border border-[#C9A45C]/60 bg-[#FFFDF8] px-5 py-3 text-base text-[#4A0B1A] placeholder:text-[#8B1E2D]/45 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#C9A45C]/35"
                   />
                 </div>
 
-                {/* Attendance Radio Buttons */}
-                <div>
-                  <label className="block font-serif-royal text-xs font-bold uppercase tracking-wider text-[#6D1429] mb-2">
-                    Will you be attending? <span className="text-red-600">*</span>
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setAttendance("attending")}
-                      className={`p-3.5 rounded-xl border flex items-center justify-center space-x-2 text-sm font-serif-royal font-semibold transition-all cursor-pointer ${
-                        attendance === "attending"
-                          ? "bg-[#6D1429] text-[#FFF8E9] border-[#6D1429] shadow-md"
-                          : "bg-[#FFFDF8] text-[#6D1429] border-[#C9A45C]/60 hover:bg-[#F5EBD8]"
-                      }`}
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      <span>Joyfully Accepts</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setAttendance("declining")}
-                      className={`p-3.5 rounded-xl border flex items-center justify-center space-x-2 text-sm font-serif-royal font-semibold transition-all cursor-pointer ${
-                        attendance === "declining"
-                          ? "bg-[#8B1E2D] text-[#FFF8E9] border-[#8B1E2D] shadow-md"
-                          : "bg-[#FFFDF8] text-[#6D1429] border-[#C9A45C]/60 hover:bg-[#F5EBD8]"
-                      }`}
-                    >
-                      <span>Regretfully Declines</span>
-                    </button>
+                <fieldset>
+                  <legend className="mb-3 font-serif-royal text-lg font-bold uppercase tracking-wide text-[#6D1429]">
+                    Will You Be Joining Us? <span className="text-red-700" aria-hidden="true">*</span>
+                  </legend>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                    {([
+                      { value: "attending", label: "Joyfully Accepts" },
+                      { value: "declining", label: "Regretfully Declines" },
+                    ] as const).map((option) => {
+                      const isSelected = attendance === option.value;
+                      return (
+                        <label key={option.value} className="relative block cursor-pointer">
+                          <input
+                            className="peer sr-only"
+                            type="radio"
+                            name="attendance"
+                            value={option.value}
+                            checked={isSelected}
+                            onChange={() => setAttendance(option.value)}
+                            required
+                          />
+                          <span className={`flex min-h-[5.25rem] items-center gap-4 rounded-2xl border-2 px-4 py-4 transition-colors peer-focus-visible:ring-4 peer-focus-visible:ring-[#C9A45C]/40 sm:min-h-24 sm:px-5 ${isSelected ? "border-[#D4AF37] bg-[#6D1429] text-[#FFF8E9] shadow-md" : "border-[#C9A45C]/55 bg-[#FFFDF8] text-[#6D1429] hover:bg-[#F5EBD8]"}`}>
+                            <span aria-hidden="true" className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${isSelected ? "border-[#E3C98A] bg-[#FFF8E9] text-[#6D1429]" : "border-[#9A7730] text-transparent"}`}>
+                              {isSelected && <Check className="h-4 w-4" strokeWidth={3} />}
+                            </span>
+                            <span className="font-serif-royal text-base font-bold uppercase leading-snug tracking-wide sm:text-lg">
+                              {option.label}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })}
                   </div>
-                </div>
+                </fieldset>
 
-                {/* Attending Specific Fields */}
                 {attendance === "attending" && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="space-y-6 pt-2"
+                    className="space-y-7 pt-1"
                   >
-                    {/* Number of Guests */}
                     <div>
-                      <label
-                        htmlFor="guestCount"
-                        className="block font-serif-royal text-xs font-bold uppercase tracking-wider text-[#6D1429] mb-1.5"
-                      >
+                      <label htmlFor="guestCount" className="mb-2 block font-serif-royal text-lg font-bold uppercase tracking-wide text-[#6D1429]">
                         Number of Attending Guests
                       </label>
-                      <div className="flex items-center space-x-3">
-                        <Users className="w-5 h-5 text-[#8B1E2D]" />
+                      <div className="flex items-center gap-3">
+                        <Users className="h-6 w-6 shrink-0 text-[#8B1E2D]" aria-hidden="true" />
                         <select
                           id="guestCount"
+                          name="guestCount"
                           value={guestCount}
-                          onChange={(e) => setGuestCount(Number(e.target.value))}
-                          className="px-4 py-2.5 rounded-xl border border-[#C9A45C]/60 bg-[#FFFDF8] text-[#4A0B1A] focus:outline-none focus:ring-2 focus:ring-[#8B1E2D] text-sm"
+                          onChange={(event) => setGuestCount(Math.min(Number(event.target.value), maxGuestCount))}
+                          className="min-h-12 min-w-36 rounded-xl border border-[#C9A45C]/60 bg-[#FFFDF8] px-4 py-2 text-base text-[#4A0B1A] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#C9A45C]/35"
                         >
-                          {Array.from({ length: rsvp.maxGuests }).map((_, i) => (
-                            <option key={i + 1} value={i + 1}>
-                              {i + 1} {i === 0 ? "Guest" : "Guests"}
-                            </option>
+                          {Array.from({ length: maxGuestCount }, (_, index) => index + 1).map((count) => (
+                            <option key={count} value={count}>{count} {count === 1 ? "Guest" : "Guests"}</option>
                           ))}
                         </select>
                       </div>
                     </div>
 
-                    {/* Events Selection Checkboxes */}
-                    <div>
-                      <label className="block font-serif-royal text-xs font-bold uppercase tracking-wider text-[#6D1429] mb-2">
-                        Which ceremonies will you attend?
-                      </label>
-                      <div className="space-y-2">
-                        {events.map((event) => (
-                          <label
-                            key={event.id}
-                            className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-colors ${
-                              selectedEvents.includes(event.id)
-                                ? "bg-[#F5EBD8] border-[#8B1E2D]"
-                                : "bg-[#FFFDF8] border-[#C9A45C]/40"
-                            }`}
-                          >
-                            <div>
-                              <span className="font-serif-royal text-sm font-semibold text-[#6D1429] block">
-                                {event.title}
-                              </span>
-                              <span className="text-xs text-[#8B1E2D]/80 block">
-                                {event.date} • {event.time}
-                              </span>
-                            </div>
-                            <input
-                              type="checkbox"
-                              checked={selectedEvents.includes(event.id)}
-                              onChange={() => handleEventToggle(event.id)}
-                              className="w-4 h-4 accent-[#8B1E2D]"
-                            />
-                          </label>
-                        ))}
-                      </div>
-                    </div>
+                    <fieldset>
+                      <legend className="mb-3 font-serif-royal text-lg font-bold uppercase leading-snug tracking-wide text-[#6D1429]">
+                        Which Ceremonies Will You Attend?
+                      </legend>
+                      {events.length > 0 ? (
+                        <div className="space-y-2.5">
+                          {events.map((weddingEvent) => {
+                            const isSelected = selectedEvents.includes(weddingEvent.id);
+                            const eventInputId = `event-${weddingEvent.id}`;
+                            return (
+                              <label
+                                key={weddingEvent.id}
+                                htmlFor={eventInputId}
+                                className={`flex min-h-[4.5rem] cursor-pointer items-center justify-between gap-4 rounded-xl border px-4 py-3 transition-colors focus-within:ring-4 focus-within:ring-[#C9A45C]/35 sm:px-5 ${isSelected ? "border-[#8B1E2D]/70 bg-[#F5EBD8]/70" : "border-[#C9A45C]/45 bg-[#FFFDF8] hover:bg-[#F5EBD8]/50"}`}
+                              >
+                                <span className="min-w-0 flex-1">
+                                  <span className="font-serif-royal block break-words text-base font-bold leading-snug text-[#6D1429] sm:text-lg">
+                                    {weddingEvent.title}
+                                  </span>
+                                  <span className="mt-1 block break-words text-sm leading-snug text-[#8B1E2D]/80 sm:text-base">
+                                    {weddingEvent.date} <span aria-hidden="true">·</span> {weddingEvent.time}
+                                  </span>
+                                </span>
+                                <input
+                                  id={eventInputId}
+                                  type="checkbox"
+                                  name="events"
+                                  value={weddingEvent.id}
+                                  checked={isSelected}
+                                  onChange={() => handleEventToggle(weddingEvent.id)}
+                                  className="h-5 w-5 shrink-0 accent-[#8B1E2D] focus-visible:outline-none"
+                                  aria-label={`Attend ${weddingEvent.title}`}
+                                />
+                              </label>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="rounded-xl border border-dashed border-[#C9A45C]/70 bg-[#FFFDF8] px-4 py-5 font-serif-elegant text-base italic text-[#736044]">
+                          Ceremony details will be shared soon.
+                        </p>
+                      )}
+                    </fieldset>
                   </motion.div>
                 )}
 
-                {/* Warm Wishes / Message */}
                 <div>
-                  <label
-                    htmlFor="message"
-                    className="block font-serif-royal text-xs font-bold uppercase tracking-wider text-[#6D1429] mb-1.5"
-                  >
-                    Blessings & Message to the Couple (Optional)
+                  <label htmlFor="message" className="mb-2 block font-serif-royal text-lg font-bold uppercase leading-snug tracking-wide text-[#6D1429]">
+                    Blessings &amp; Message to the Couple <span className="text-sm font-medium normal-case tracking-normal text-[#9A7730]">(Optional)</span>
                   </label>
                   <textarea
                     id="message"
-                    rows={3}
+                    name="message"
+                    rows={4}
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Write your heartfelt wishes or dietary notes..."
-                    className="w-full px-4 py-3 rounded-xl border border-[#C9A45C]/60 bg-[#FFFDF8] text-[#4A0B1A] focus:outline-none focus:ring-2 focus:ring-[#8B1E2D] text-sm"
+                    onChange={(event) => setMessage(event.target.value)}
+                    placeholder="Share your heartfelt wishes or dietary notes..."
+                    className="min-h-32 w-full resize-y rounded-2xl border border-[#C9A45C]/60 bg-[#FFFDF8] px-5 py-4 text-base leading-relaxed text-[#4A0B1A] placeholder:text-[#8B1E2D]/45 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#C9A45C]/35"
                   />
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#9A7730] via-[#D4AF37] to-[#9A7730] text-[#3B0713] font-serif-royal font-bold text-sm sm:text-base tracking-widest uppercase shadow-xl hover:shadow-[#D4AF37]/50 transition-all duration-300 border border-[#FFF2B2] flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60"
+                  aria-busy={isSubmitting}
+                  className="flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl border border-[#FFF2B2] bg-gradient-to-r from-[#9A7730] via-[#D4AF37] to-[#9A7730] px-6 py-4 font-serif-royal text-base font-bold uppercase tracking-[0.16em] text-[#3B0713] shadow-lg transition hover:brightness-105 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#6D1429]/35 disabled:cursor-wait disabled:opacity-65 sm:text-lg"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>{isSubmitting ? "Submitting RSVP..." : "Submit RSVP"}</span>
+                  <Send className="h-5 w-5" aria-hidden="true" />
+                  <span>{isSubmitting ? "Submitting RSVP…" : "Submit RSVP"}</span>
                 </button>
 
-                {/* Note about real submission configuration */}
-                <p className="text-[11px] text-center text-[#8B1E2D]/70 italic mt-2">
-                  Responses are securely recorded. For assistance, reach out at {rsvp.contactPhone}
-                </p>
+                {rsvp.contactPhone?.trim() && (
+                  <p className="text-center font-serif-elegant text-sm italic text-[#8B1E2D]/75">
+                    For assistance, please contact {rsvp.contactPhone}.
+                  </p>
+                )}
               </form>
             )}
           </AnimatePresence>
