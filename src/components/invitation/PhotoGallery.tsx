@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 export const PhotoGallery: React.FC = () => {
   const { gallery } = weddingConfig;
   const [activeIndex, setActiveIndex] = useState(0);
+  const [currentRenderIndex, setCurrentRenderIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
@@ -17,9 +18,24 @@ export const PhotoGallery: React.FC = () => {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   const slidesRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const currentRenderIndexRef = useRef(0);
+  const recenterTimerRef = useRef<number | undefined>(undefined);
+  const renderCopies = gallery.length > 1 ? [0, 1, 2] : [1];
+  const renderedPhotos = renderCopies.flatMap((copyIndex) =>
+    gallery.map((photo, index) => ({ photo, index, copyIndex, renderIndex: copyIndex * gallery.length + index }))
+  );
 
   const goToPhoto = useCallback((index: number) => {
-    const slide = slidesRef.current[index];
+    if (gallery.length === 0) return;
+    const logicalIndex = ((index % gallery.length) + gallery.length) % gallery.length;
+    const currentRenderIndex = currentRenderIndexRef.current || gallery.length + activeIndex;
+    const candidates = gallery.length > 1
+      ? [logicalIndex, gallery.length + logicalIndex, gallery.length * 2 + logicalIndex]
+      : [logicalIndex];
+    const renderIndex = candidates.reduce((closest, candidate) =>
+      Math.abs(candidate - currentRenderIndex) < Math.abs(closest - currentRenderIndex) ? candidate : closest
+    );
+    const slide = slidesRef.current[renderIndex];
     const carousel = carouselRef.current;
     if (!slide || !carousel) return;
 
@@ -27,8 +43,25 @@ export const PhotoGallery: React.FC = () => {
       left: slide.offsetLeft - (carousel.clientWidth - slide.clientWidth) / 2,
       behavior: prefersReducedMotion ? "auto" : "smooth",
     });
-    setActiveIndex(index);
-  }, [prefersReducedMotion]);
+    currentRenderIndexRef.current = renderIndex;
+    setCurrentRenderIndex(renderIndex);
+    setActiveIndex(logicalIndex);
+  }, [activeIndex, gallery.length, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (gallery.length < 2) return;
+    const carousel = carouselRef.current;
+    const initialSlide = slidesRef.current[gallery.length];
+    if (!carousel || !initialSlide) return;
+    carousel.scrollTo({
+      left: initialSlide.offsetLeft - (carousel.clientWidth - initialSlide.clientWidth) / 2,
+      behavior: "auto",
+    });
+    currentRenderIndexRef.current = gallery.length;
+    setCurrentRenderIndex(gallery.length);
+  }, [gallery.length]);
+
+  useEffect(() => () => window.clearTimeout(recenterTimerRef.current), []);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -63,7 +96,27 @@ export const PhotoGallery: React.FC = () => {
         closestIndex = index;
       }
     });
-    setActiveIndex(closestIndex);
+    currentRenderIndexRef.current = closestIndex;
+    setCurrentRenderIndex(closestIndex);
+    setActiveIndex(closestIndex % gallery.length);
+
+    if (gallery.length > 1) {
+      window.clearTimeout(recenterTimerRef.current);
+      recenterTimerRef.current = window.setTimeout(() => {
+        const currentIndex = currentRenderIndexRef.current;
+        if (currentIndex >= gallery.length && currentIndex < gallery.length * 2) return;
+        const logicalIndex = currentIndex % gallery.length;
+        const centralSlide = slidesRef.current[gallery.length + logicalIndex];
+        const currentCarousel = carouselRef.current;
+        if (!centralSlide || !currentCarousel) return;
+        currentCarousel.scrollTo({
+          left: centralSlide.offsetLeft - (currentCarousel.clientWidth - centralSlide.clientWidth) / 2,
+          behavior: "auto",
+        });
+        currentRenderIndexRef.current = gallery.length + logicalIndex;
+        setCurrentRenderIndex(gallery.length + logicalIndex);
+      }, 160);
+    }
   };
 
   const handleOpenLightbox = (index: number) => setLightboxIndex(index);
@@ -94,11 +147,11 @@ export const PhotoGallery: React.FC = () => {
   const handleCarouselKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      goToPhoto(Math.min(activeIndex + 1, gallery.length - 1));
+      goToPhoto(activeIndex + 1);
     }
     if (event.key === "ArrowLeft") {
       event.preventDefault();
-      goToPhoto(Math.max(activeIndex - 1, 0));
+      goToPhoto(activeIndex - 1);
     }
   };
 
@@ -140,21 +193,23 @@ export const PhotoGallery: React.FC = () => {
             tabIndex={0}
             onKeyDown={handleCarouselKeyDown}
             onScroll={handleCarouselScroll}
-            className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-[6%] py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:gap-5 md:px-[12.5%] lg:px-[15%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B1E2D] focus-visible:ring-offset-4"
+            className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-[6%] py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:gap-5 md:px-[12.5%] lg:px-[15%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B1E2D] focus-visible:ring-offset-4"
           >
-            {gallery.map((photo, index) => (
+            {renderedPhotos.map(({ photo, index, copyIndex, renderIndex }) => (
               <motion.button
-                key={photo.id}
+                key={`${copyIndex}-${photo.id}`}
                 ref={(node) => {
-                  slidesRef.current[index] = node;
+                  slidesRef.current[renderIndex] = node;
                 }}
                 type="button"
                 onClick={() => handleOpenLightbox(index)}
                 aria-label={`Open photo ${index + 1}: ${photo.caption}`}
-                aria-current={activeIndex === index ? "true" : undefined}
+                aria-current={copyIndex === 1 && activeIndex === index ? "true" : undefined}
+                aria-hidden={copyIndex !== 1}
+                tabIndex={copyIndex === 1 ? 0 : -1}
                 className="group relative aspect-[4/3] w-[88%] max-w-[860px] shrink-0 snap-center overflow-hidden rounded-2xl border-2 border-[#C9A45C]/70 bg-[#E8D3B9] text-left shadow-xl transition-shadow duration-300 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6D1429] md:w-[75%] lg:w-[70%]"
-                initial={{ opacity: 0.8, scale: 0.98 }}
-                animate={{ opacity: activeIndex === index ? 1 : 0.78, scale: activeIndex === index ? 1 : 0.97 }}
+                initial={false}
+                animate={{ opacity: currentRenderIndex === renderIndex ? 1 : 0.78, scale: currentRenderIndex === renderIndex ? 1 : 0.97 }}
                 transition={{ duration: 0.35 }}
               >
                 <Image
@@ -171,8 +226,8 @@ export const PhotoGallery: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => goToPhoto(Math.max(activeIndex - 1, 0))}
-            disabled={activeIndex === 0}
+            onClick={() => goToPhoto(activeIndex - 1)}
+            disabled={gallery.length < 2}
             aria-label="Previous gallery photo"
             className="absolute left-1 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#C9A45C] bg-[#FFF8E9]/95 text-[#6D1429] shadow-lg transition hover:bg-[#6D1429] hover:text-[#FFF8E9] disabled:cursor-not-allowed disabled:opacity-45 sm:left-5 sm:h-12 sm:w-12"
           >
@@ -180,8 +235,8 @@ export const PhotoGallery: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => goToPhoto(Math.min(activeIndex + 1, gallery.length - 1))}
-            disabled={activeIndex === gallery.length - 1}
+            onClick={() => goToPhoto(activeIndex + 1)}
+            disabled={gallery.length < 2}
             aria-label="Next gallery photo"
             className="absolute right-1 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#C9A45C] bg-[#FFF8E9]/95 text-[#6D1429] shadow-lg transition hover:bg-[#6D1429] hover:text-[#FFF8E9] disabled:cursor-not-allowed disabled:opacity-45 sm:right-5 sm:h-12 sm:w-12"
           >
@@ -189,7 +244,7 @@ export const PhotoGallery: React.FC = () => {
           </button>
         </div>
 
-        <div className="-mx-1 mt-2 flex items-center justify-center gap-[5px] sm:mx-0 sm:mt-6" role="group" aria-label="Choose a gallery photo">
+        <div className="-mx-1 mt-2 flex items-center justify-center gap-[5px] sm:mx-0 sm:mt-4" role="group" aria-label="Choose a gallery photo">
           {gallery.map((photo, index) => (
             <button
               key={photo.id}
@@ -208,9 +263,6 @@ export const PhotoGallery: React.FC = () => {
             </button>
           ))}
         </div>
-        <p className="mt-0 text-center font-serif-royal text-xs tracking-wider text-[#8B1E2D] sm:mt-3" aria-live="polite">
-          {activeIndex + 1} / {gallery.length}
-        </p>
       </div>}
 
       <AnimatePresence>
