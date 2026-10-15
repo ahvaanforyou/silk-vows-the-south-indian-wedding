@@ -73,18 +73,18 @@ export const RSVPSection: React.FC = () => {
   return (
     <section
       id="rsvp"
-      className="relative overflow-hidden bg-[#F5EBD8] px-4 py-20 text-[#4A0B1A] sm:px-6 sm:py-24"
+      className="relative overflow-hidden bg-[#F5EBD8] px-4 py-12 text-[#4A0B1A] sm:px-6 sm:py-16"
     >
       <div className="pointer-events-none absolute inset-0 bg-kolam-pattern opacity-[0.035]" aria-hidden="true" />
 
-      <div className="relative z-10 mx-auto mb-12 max-w-4xl text-center sm:mb-14">
-        <span className="font-telugu mb-1 block text-lg font-bold text-[#8B1E2D]">
+      <div className="relative z-10 mx-auto mb-7 max-w-3xl text-center sm:mb-9">
+        <span className="font-telugu mb-1 block text-base font-bold text-[#8B1E2D]">
           మీ రాక మాకు ఆనందం
         </span>
-        <h2 className="font-serif-royal text-3xl font-bold tracking-wide text-[#6D1429] sm:text-4xl md:text-5xl">
+        <h2 className="font-serif-royal text-2xl font-bold tracking-wide text-[#6D1429] sm:text-3xl md:text-4xl">
           We Would Love to Celebrate With You
         </h2>
-        <p className="font-serif-elegant mx-auto mt-2 max-w-xl text-lg italic text-[#8B1E2D] sm:text-xl">
+        <p className="font-serif-elegant mx-auto mt-1 max-w-xl text-base italic text-[#8B1E2D] sm:text-lg">
           Please let us know if you will be joining us for our special day.
         </p>
         <FloralDivider theme="maroon" />
@@ -95,13 +95,13 @@ export const RSVPSection: React.FC = () => {
         )}
       </div>
 
-      <div className="relative z-10 mx-auto max-w-3xl">
+      <div className="relative z-10 mx-auto max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="relative overflow-hidden rounded-2xl border-2 border-[#C9A45C] bg-[#FFF8E9] p-5 shadow-2xl sm:p-8 md:p-10"
+          className="relative overflow-hidden rounded-2xl border-2 border-[#C9A45C] bg-[#FFF8E9] p-4 shadow-xl sm:p-6 md:p-7"
         >
           <CornerOrnament position="top-left" size={40} color="#8B1E2D" />
           <CornerOrnament position="top-right" size={40} color="#8B1E2D" />
@@ -115,7 +115,7 @@ export const RSVPSection: React.FC = () => {
                 initial={{ scale: 0.96, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center py-10 text-center"
+                className="flex flex-col items-center py-7 text-center"
                 role="status"
               >
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#8B1E2D] bg-[#8B1E2D]/10 text-[#8B1E2D]">
@@ -139,7 +139,7 @@ export const RSVPSection: React.FC = () => {
                 </button>
               </motion.div>
             ) : (
-              <form key="form" onSubmit={handleSubmit} className="relative space-y-7" aria-busy={isSubmitting}>
+              <form key="form" onSubmit={handleSubmit} className="relative space-y-4 sm:space-y-5" aria-busy={isSubmitting}>
                 {errorMsg && (
                   <div id="rsvp-error" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">
                     {errorMsg}
@@ -147,7 +147,7 @@ export const RSVPSection: React.FC = () => {
                 )}
 
                 <div>
-                  <label htmlFor="fullName" className="mb-2 block font-serif-royal text-lg font-bold uppercase tracking-wide text-[#6D1429]">
+                  <label htmlFor="fullName" className="mb-1.5 block font-serif-royal text-base font-bold uppercase tracking-wide text-[#6D1429] sm:text-lg">
                     Guest Name(s) <span className="text-red-700" aria-hidden="true">*</span>
                     <span className="sr-only"> required</span>
                   </label>
@@ -162,15 +162,15 @@ export const RSVPSection: React.FC = () => {
                     placeholder="e.g., Smt. Lakshmi & Sri Venkatesh"
                     aria-invalid={Boolean(errorMsg && !fullName.trim())}
                     aria-describedby={errorMsg && !fullName.trim() ? "rsvp-error" : undefined}
-                    className="min-h-14 w-full rounded-2xl border border-[#C9A45C]/60 bg-[#FFFDF8] px-5 py-3 text-base text-[#4A0B1A] placeholder:text-[#8B1E2D]/45 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#C9A45C]/35"
+                    className="min-h-11 w-full rounded-xl border border-[#C9A45C]/60 bg-[#FFFDF8] px-4 py-2.5 text-base text-[#4A0B1A] placeholder:text-[#8B1E2D]/45 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#C9A45C]/35 sm:min-h-12"
                   />
                 </div>
 
                 <fieldset>
-                  <legend className="mb-3 font-serif-royal text-lg font-bold uppercase tracking-wide text-[#6D1429]">
+                  <legend className="mb-2 font-serif-royal text-base font-bold uppercase tracking-wide text-[#6D1429] sm:text-lg">
                     Will You Be Joining Us? <span className="text-red-700" aria-hidden="true">*</span>
                   </legend>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
                     {([
                       { value: "attending", label: "Joyfully Accepts" },
                       { value: "declining", label: "Regretfully Declines" },
@@ -187,11 +187,11 @@ export const RSVPSection: React.FC = () => {
                             onChange={() => setAttendance(option.value)}
                             required
                           />
-                          <span className={`flex min-h-[5.25rem] items-center gap-4 rounded-2xl border-2 px-4 py-4 transition-colors peer-focus-visible:ring-4 peer-focus-visible:ring-[#C9A45C]/40 sm:min-h-24 sm:px-5 ${isSelected ? "border-[#D4AF37] bg-[#6D1429] text-[#FFF8E9] shadow-md" : "border-[#C9A45C]/55 bg-[#FFFDF8] text-[#6D1429] hover:bg-[#F5EBD8]"}`}>
-                            <span aria-hidden="true" className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${isSelected ? "border-[#E3C98A] bg-[#FFF8E9] text-[#6D1429]" : "border-[#9A7730] text-transparent"}`}>
-                              {isSelected && <Check className="h-4 w-4" strokeWidth={3} />}
+                          <span className={`flex min-h-16 items-center gap-3 rounded-xl border-2 px-3 py-3 transition-colors peer-focus-visible:ring-4 peer-focus-visible:ring-[#C9A45C]/40 sm:min-h-[4.5rem] sm:px-4 ${isSelected ? "border-[#D4AF37] bg-[#6D1429] text-[#FFF8E9] shadow-sm" : "border-[#C9A45C]/55 bg-[#FFFDF8] text-[#6D1429] hover:bg-[#F5EBD8]"}`}>
+                            <span aria-hidden="true" className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${isSelected ? "border-[#E3C98A] bg-[#FFF8E9] text-[#6D1429]" : "border-[#9A7730] text-transparent"}`}>
+                              {isSelected && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
                             </span>
-                            <span className="font-serif-royal text-base font-bold uppercase leading-snug tracking-wide sm:text-lg">
+                            <span className="font-serif-royal text-sm font-bold uppercase leading-snug tracking-wide sm:text-base">
                               {option.label}
                             </span>
                           </span>
@@ -206,20 +206,20 @@ export const RSVPSection: React.FC = () => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="space-y-7 pt-1"
+                    className="space-y-4 pt-0.5 sm:space-y-5"
                   >
                     <div>
-                      <label htmlFor="guestCount" className="mb-2 block font-serif-royal text-lg font-bold uppercase tracking-wide text-[#6D1429]">
+                      <label htmlFor="guestCount" className="mb-1.5 block font-serif-royal text-base font-bold uppercase tracking-wide text-[#6D1429] sm:text-lg">
                         Number of Attending Guests
                       </label>
-                      <div className="flex items-center gap-3">
-                        <Users className="h-6 w-6 shrink-0 text-[#8B1E2D]" aria-hidden="true" />
+                      <div className="flex items-center gap-2.5">
+                        <Users className="h-5 w-5 shrink-0 text-[#8B1E2D]" aria-hidden="true" />
                         <select
                           id="guestCount"
                           name="guestCount"
                           value={guestCount}
                           onChange={(event) => setGuestCount(Math.min(Number(event.target.value), maxGuestCount))}
-                          className="min-h-12 min-w-36 rounded-xl border border-[#C9A45C]/60 bg-[#FFFDF8] px-4 py-2 text-base text-[#4A0B1A] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#C9A45C]/35"
+                          className="min-h-10 min-w-32 rounded-lg border border-[#C9A45C]/60 bg-[#FFFDF8] px-3 py-1.5 text-sm text-[#4A0B1A] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#C9A45C]/35"
                         >
                           {Array.from({ length: maxGuestCount }, (_, index) => index + 1).map((count) => (
                             <option key={count} value={count}>{count} {count === 1 ? "Guest" : "Guests"}</option>
@@ -229,11 +229,11 @@ export const RSVPSection: React.FC = () => {
                     </div>
 
                     <fieldset>
-                      <legend className="mb-3 font-serif-royal text-lg font-bold uppercase leading-snug tracking-wide text-[#6D1429]">
+                      <legend className="mb-2 font-serif-royal text-base font-bold uppercase leading-snug tracking-wide text-[#6D1429] sm:text-lg">
                         Which Ceremonies Will You Attend?
                       </legend>
                       {events.length > 0 ? (
-                        <div className="space-y-2.5">
+                        <div className="space-y-2">
                           {events.map((weddingEvent) => {
                             const isSelected = selectedEvents.includes(weddingEvent.id);
                             const eventInputId = `event-${weddingEvent.id}`;
@@ -241,13 +241,13 @@ export const RSVPSection: React.FC = () => {
                               <label
                                 key={weddingEvent.id}
                                 htmlFor={eventInputId}
-                                className={`flex min-h-[4.5rem] cursor-pointer items-center justify-between gap-4 rounded-xl border px-4 py-3 transition-colors focus-within:ring-4 focus-within:ring-[#C9A45C]/35 sm:px-5 ${isSelected ? "border-[#8B1E2D]/70 bg-[#F5EBD8]/70" : "border-[#C9A45C]/45 bg-[#FFFDF8] hover:bg-[#F5EBD8]/50"}`}
+                                className={`flex min-h-14 cursor-pointer items-center justify-between gap-3 rounded-lg border px-3 py-2.5 transition-colors focus-within:ring-4 focus-within:ring-[#C9A45C]/35 sm:min-h-16 sm:px-4 sm:py-3 ${isSelected ? "border-[#8B1E2D]/70 bg-[#F5EBD8]/70" : "border-[#C9A45C]/45 bg-[#FFFDF8] hover:bg-[#F5EBD8]/50"}`}
                               >
                                 <span className="min-w-0 flex-1">
-                                  <span className="font-serif-royal block break-words text-base font-bold leading-snug text-[#6D1429] sm:text-lg">
+                                  <span className="font-serif-royal block break-words text-sm font-bold leading-snug text-[#6D1429] sm:text-base">
                                     {weddingEvent.title}
                                   </span>
-                                  <span className="mt-1 block break-words text-sm leading-snug text-[#8B1E2D]/80 sm:text-base">
+                                  <span className="mt-0.5 block break-words text-xs leading-snug text-[#8B1E2D]/80 sm:text-sm">
                                     {weddingEvent.date} <span aria-hidden="true">·</span> {weddingEvent.time}
                                   </span>
                                 </span>
@@ -258,7 +258,7 @@ export const RSVPSection: React.FC = () => {
                                   value={weddingEvent.id}
                                   checked={isSelected}
                                   onChange={() => handleEventToggle(weddingEvent.id)}
-                                  className="h-5 w-5 shrink-0 accent-[#8B1E2D] focus-visible:outline-none"
+                                  className="h-4 w-4 shrink-0 accent-[#8B1E2D] focus-visible:outline-none"
                                   aria-label={`Attend ${weddingEvent.title}`}
                                 />
                               </label>
@@ -275,17 +275,17 @@ export const RSVPSection: React.FC = () => {
                 )}
 
                 <div>
-                  <label htmlFor="message" className="mb-2 block font-serif-royal text-lg font-bold uppercase leading-snug tracking-wide text-[#6D1429]">
-                    Blessings &amp; Message to the Couple <span className="text-sm font-medium normal-case tracking-normal text-[#9A7730]">(Optional)</span>
+                  <label htmlFor="message" className="mb-1.5 block font-serif-royal text-base font-bold uppercase leading-snug tracking-wide text-[#6D1429] sm:text-lg">
+                    Blessings &amp; Message to the Couple <span className="text-xs font-medium normal-case tracking-normal text-[#9A7730] sm:text-sm">(Optional)</span>
                   </label>
                   <textarea
                     id="message"
                     name="message"
-                    rows={4}
+                    rows={3}
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
                     placeholder="Share your heartfelt wishes or dietary notes..."
-                    className="min-h-32 w-full resize-y rounded-2xl border border-[#C9A45C]/60 bg-[#FFFDF8] px-5 py-4 text-base leading-relaxed text-[#4A0B1A] placeholder:text-[#8B1E2D]/45 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#C9A45C]/35"
+                    className="min-h-[6rem] w-full resize-y rounded-xl border border-[#C9A45C]/60 bg-[#FFFDF8] px-4 py-3 text-base leading-relaxed text-[#4A0B1A] placeholder:text-[#8B1E2D]/45 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#C9A45C]/35"
                   />
                 </div>
 
@@ -293,9 +293,9 @@ export const RSVPSection: React.FC = () => {
                   type="submit"
                   disabled={isSubmitting}
                   aria-busy={isSubmitting}
-                  className="flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl border border-[#FFF2B2] bg-gradient-to-r from-[#9A7730] via-[#D4AF37] to-[#9A7730] px-6 py-4 font-serif-royal text-base font-bold uppercase tracking-[0.16em] text-[#3B0713] shadow-lg transition hover:brightness-105 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#6D1429]/35 disabled:cursor-wait disabled:opacity-65 sm:text-lg"
+                  className="flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-[#FFF2B2] bg-gradient-to-r from-[#9A7730] via-[#D4AF37] to-[#9A7730] px-5 py-3 font-serif-royal text-sm font-bold uppercase tracking-[0.14em] text-[#3B0713] shadow-md transition hover:brightness-105 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#6D1429]/35 disabled:cursor-wait disabled:opacity-65 sm:text-base"
                 >
-                  <Send className="h-5 w-5" aria-hidden="true" />
+                  <Send className="h-4 w-4" aria-hidden="true" />
                   <span>{isSubmitting ? "Submitting RSVP…" : "Submit RSVP"}</span>
                 </button>
 
