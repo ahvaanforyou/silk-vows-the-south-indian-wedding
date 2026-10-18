@@ -30,6 +30,12 @@
   --green-deep: #234B38;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+}
+
 /* Custom Scrollbar in Antique Gold */
 ::-webkit-scrollbar {
   width: 8px;

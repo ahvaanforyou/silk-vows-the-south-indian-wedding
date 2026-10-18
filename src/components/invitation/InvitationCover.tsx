@@ -71,7 +71,7 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
           aria-modal="true"
           aria-label="Wedding invitation opening"
           onKeyDown={keepFocusInDialog}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B050E]/90 backdrop-blur-md p-3 sm:p-6 overflow-y-auto overscroll-contain perspective-2000"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B050E]/90 backdrop-blur-md p-2.5 sm:p-6 overflow-y-auto overscroll-contain perspective-2000"
         >
           {/* Subtle Ambient Glow behind card */}
           <div className="absolute w-[80vw] h-[80vh] max-w-2xl max-h-[800px] bg-[#8B1E2D]/40 rounded-full blur-3xl pointer-events-none" />
@@ -87,7 +87,7 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
               transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
             }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.6, ease: "easeOut" }}
-            className="relative w-full max-w-lg max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-3rem)] flex flex-col rounded-2xl shadow-2xl overflow-hidden border-2 border-[#C9A45C] bg-gradient-to-b from-[#6D1429] via-[#520C1C] to-[#3B0713] text-[#FFF8E9] select-none"
+            className="relative w-full max-w-lg my-auto mx-auto max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-3rem)] flex flex-col rounded-2xl shadow-2xl overflow-hidden border-2 border-[#C9A45C] bg-gradient-to-b from-[#6D1429] via-[#520C1C] to-[#3B0713] text-[#FFF8E9] select-none"
           >
             {/* Silk cloth texture effect & border inlays */}
             <div className="absolute inset-2 sm:inset-3 border border-[#E3C98A]/50 rounded-xl pointer-events-none" />
@@ -113,7 +113,7 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
             </div>
 
             {/* Central Invitation Card Body */}
-            <div className="relative z-10 min-h-0 flex-[1_1_auto] overflow-y-auto overscroll-contain px-5 sm:px-8 py-2 sm:py-3 flex flex-col items-center justify-center text-center">
+            <div className="relative z-10 min-h-0 flex-[1_1_auto] overflow-y-auto overscroll-contain px-3 min-[400px]:px-5 sm:px-8 py-2 sm:py-3 flex flex-col items-center justify-center text-center">
               <Image
                 src="/images/ganesha-emblem.png"
                 alt="Golden Ganesha emblem"
@@ -149,7 +149,7 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
 
               {/* Couple Names - Strongest visual elements */}
               <div className="my-2 sm:my-3">
-                <h1 className="font-serif-royal text-3xl sm:text-4.5xl md:text-5xl font-bold tracking-wide gold-gradient-text drop-shadow-md leading-tight">
+                <h1 className="font-serif-royal text-2xl min-[360px]:text-3xl sm:text-4.5xl md:text-5xl font-bold tracking-wide gold-gradient-text drop-shadow-md leading-tight">
                   {weddingConfig.couple.bride.name}
                 </h1>
 
@@ -162,7 +162,7 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
                   <span className="w-8 h-[1px] bg-[#E3C98A]/40" />
                 </div>
 
-                <h1 className="font-serif-royal text-3xl sm:text-4.5xl md:text-5xl font-bold tracking-wide gold-gradient-text drop-shadow-md leading-tight">
+                <h1 className="font-serif-royal text-2xl min-[360px]:text-3xl sm:text-4.5xl md:text-5xl font-bold tracking-wide gold-gradient-text drop-shadow-md leading-tight">
                   {weddingConfig.couple.groom.name}
                 </h1>
               </div>

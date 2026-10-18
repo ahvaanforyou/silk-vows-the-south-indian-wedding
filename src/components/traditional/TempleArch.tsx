@@ -17,7 +17,7 @@ export const TempleArch: React.FC<TempleArchProps> = ({
   const strokeColor = isMaroon ? "#C9A45C" : "#C9A45C";
 
   return (
-    <div className={`relative p-6 md:p-10 ${className}`}>
+    <div className={`relative p-2 min-[400px]:p-4 sm:p-6 md:p-10 ${className}`}>
       {/* Top Temple Gopuram Crown Arch SVG */}
       <div className="w-full flex justify-center -mb-3 pointer-events-none select-none">
         <svg
@@ -26,7 +26,7 @@ export const TempleArch: React.FC<TempleArchProps> = ({
           viewBox="0 0 240 54"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="max-w-full drop-shadow-sm"
+          className="max-w-[70vw] sm:max-w-full drop-shadow-sm"
         >
           {/* Central Gopuram Kalasam Spire */}
           <path
@@ -65,7 +65,7 @@ export const TempleArch: React.FC<TempleArchProps> = ({
       </div>
 
       {/* Main Container with Ornate Border */}
-      <div className="relative border-2 border-[#C9A45C]/60 rounded-t-[48px] rounded-b-2xl p-6 md:p-8 bg-gradient-to-b from-[#FFFDF8]/90 via-[#FFF8E9]/95 to-[#F5EBD8]/90 shadow-lg backdrop-blur-sm">
+      <div className="relative border-2 border-[#C9A45C]/60 rounded-t-[36px] sm:rounded-t-[48px] rounded-b-2xl p-3 min-[400px]:p-5 sm:p-6 md:p-8 bg-gradient-to-b from-[#FFFDF8]/90 via-[#FFF8E9]/95 to-[#F5EBD8]/90 shadow-lg backdrop-blur-sm">
         {/* Inner subtle gold dotted frame */}
         <div className="absolute inset-2 border border-dashed border-[#C9A45C]/40 rounded-t-[40px] rounded-b-xl pointer-events-none" />
 

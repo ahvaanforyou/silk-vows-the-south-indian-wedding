@@ -20,7 +20,7 @@ export const WeddingHero: React.FC = () => {
   return (
     <section
       id="hero"
-      className="relative min-h-screen w-full flex flex-col justify-between items-center bg-gradient-to-b from-[#FFFDF8] via-[#FFF8E9] to-[#F5EBD8] text-[#4A0B1A] pt-36 pb-8 px-4 sm:px-6 overflow-hidden select-none"
+      className="relative min-h-screen w-full flex flex-col justify-between items-center bg-gradient-to-b from-[#FFFDF8] via-[#FFF8E9] to-[#F5EBD8] text-[#4A0B1A] pt-24 sm:pt-36 pb-8 px-2 min-[400px]:px-4 sm:px-6 overflow-hidden select-none"
     >
       {/* Main Temple Arch Card Framing the Couple */}
       <div className="w-full max-w-2xl my-auto py-4">
@@ -31,20 +31,20 @@ export const WeddingHero: React.FC = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="flex items-center space-x-2 mb-2"
+              className="flex items-center justify-center space-x-1.5 sm:space-x-2 mb-2 max-w-full"
             >
-              <KalashIcon size={32} />
-              <div>
-                <p className="font-telugu text-lg sm:text-xl font-bold text-[#8B1E2D] tracking-wide">
+              <KalashIcon size={24} className="shrink-0" />
+              <div className="min-w-0">
+                <p className="font-telugu text-sm min-[380px]:text-base sm:text-xl font-bold text-[#8B1E2D] tracking-wide truncate">
                   {weddingConfig.shlokas.teluguGanesha}
                 </p>
                 {weddingConfig.shlokas.blessingTelugu?.trim() && (
-                  <p className="font-serif-royal text-xs text-[#9A7730] tracking-widest uppercase">
+                  <p className="font-serif-royal text-[10px] min-[380px]:text-xs text-[#9A7730] tracking-widest uppercase">
                     {weddingConfig.shlokas.blessingTelugu}
                   </p>
                 )}
               </div>
-              <KalashIcon size={32} />
+              <KalashIcon size={24} className="shrink-0" />
             </motion.div>
 
             {/* Invitation Greeting */}
@@ -80,20 +80,20 @@ export const WeddingHero: React.FC = () => {
               transition={{ delay: 0.35, duration: 0.7 }}
               className="my-2 sm:my-3"
             >
-              <h1 className="font-serif-royal text-3xl sm:text-5xl font-extrabold text-[#6D1429] tracking-wide drop-shadow-sm">
+              <h1 className="font-serif-royal text-2xl min-[360px]:text-3xl sm:text-5xl font-extrabold text-[#6D1429] tracking-wide drop-shadow-sm">
                 {weddingConfig.couple.bride.name}
               </h1>
 
               {/* weds emblem */}
-              <div className="flex items-center justify-center space-x-3 my-2">
-                <span className="w-12 h-[1px] bg-[#C9A45C]" />
-                <span className="font-serif-elegant italic text-2xl sm:text-3xl font-semibold text-[#8B1E2D]">
+              <div className="flex items-center justify-center space-x-3 my-1.5 sm:my-2">
+                <span className="w-8 sm:w-12 h-[1px] bg-[#C9A45C]" />
+                <span className="font-serif-elegant italic text-xl sm:text-3xl font-semibold text-[#8B1E2D]">
                   weds
                 </span>
-                <span className="w-12 h-[1px] bg-[#C9A45C]" />
+                <span className="w-8 sm:w-12 h-[1px] bg-[#C9A45C]" />
               </div>
 
-              <h1 className="font-serif-royal text-3xl sm:text-5xl font-extrabold text-[#6D1429] tracking-wide drop-shadow-sm">
+              <h1 className="font-serif-royal text-2xl min-[360px]:text-3xl sm:text-5xl font-extrabold text-[#6D1429] tracking-wide drop-shadow-sm">
                 {weddingConfig.couple.groom.name}
               </h1>
             </motion.div>
