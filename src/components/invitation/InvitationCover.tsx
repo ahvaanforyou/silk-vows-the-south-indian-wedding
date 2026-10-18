@@ -74,7 +74,7 @@ export const InvitationCover: React.FC<InvitationCoverProps> = ({
           className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B050E]/90 backdrop-blur-md p-2.5 sm:p-6 overflow-y-auto overscroll-contain perspective-2000"
         >
           {/* Subtle Ambient Glow behind card */}
-          <div className="absolute w-[80vw] h-[80vh] max-w-2xl max-h-[800px] bg-[#8B1E2D]/40 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] max-w-2xl max-h-[800px] bg-[#8B1E2D]/40 rounded-full blur-3xl pointer-events-none" />
 
           {/* Traditional Card Container */}
           <motion.div
